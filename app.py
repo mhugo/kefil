@@ -15,7 +15,21 @@ def init_db():
                 method TEXT NOT NULL,
                 items TEXT NOT NULL,
                 total INTEGER NOT NULL
-            )
+            );
+            
+        CREATE TABLE IF NOT EXISTS items (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name TEXT NOT NULL,
+            price INTEGER NOT NULL
+        );
+
+        CREATE TABLE IF NOT EXISTS order_items (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            order_id INTEGER NOT NULL,
+            item_id INTEGER NOT NULL,
+            quantity INTEGER NOT NULL,
+            FOREIGN KEY(order_id) REFERENCES orders(id),
+            FOREIGN KEY(item_id) REFERENCES items(id)
         ''')
         conn.commit()
 
@@ -34,10 +48,13 @@ def add_order():
     order_data = request.get_json()
     with sqlite3.connect(DATABASE) as conn:
         cursor = conn.cursor()
-        cursor.execute('''
-            INSERT INTO orders (timestamp, method, items, total)
-            VALUES (?, ?, ?, ?)
-        ''', (order_data['timestamp'], order_data['method'], str(order_data['items']), order_data['total']))
+        cursor.execute('INSERT INTO orders (timestamp, method, total) VALUES (?, ?, ?)',
+                       (order_data['timestamp'], order_data['method'], order_data['total']))
+        order_id = cursor.lastrowid
+
+        for item in order_data['items']:
+            cursor.execute('INSERT INTO order_items (order_id, item_id, quantity) VALUES (?, ?, ?)',
+                           (order_id, item['id'], item['quantity']))
         conn.commit()
         return jsonify({'id': cursor.lastrowid}), 201
 
