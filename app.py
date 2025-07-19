@@ -12,6 +12,7 @@ def init_db():
             CREATE TABLE IF NOT EXISTS orders (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 timestamp TEXT NOT NULL,
+                method TEXT NOT NULL,
                 total INTEGER NOT NULL
             )
         ''')
