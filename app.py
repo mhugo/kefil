@@ -15,14 +15,18 @@ def init_db():
                 method TEXT NOT NULL,
                 items TEXT NOT NULL,
                 total INTEGER NOT NULL
-            );
-            
+            )
+        ''')
+        
+        cursor.execute('''
         CREATE TABLE IF NOT EXISTS items (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             name TEXT NOT NULL,
             price INTEGER NOT NULL
-        );
+        )
+        ''')
 
+        cursor.execute('''
         CREATE TABLE IF NOT EXISTS order_items (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             order_id INTEGER NOT NULL,
@@ -30,6 +34,7 @@ def init_db():
             quantity INTEGER NOT NULL,
             FOREIGN KEY(order_id) REFERENCES orders(id),
             FOREIGN KEY(item_id) REFERENCES items(id)
+        )
         ''')
         conn.commit()
 
