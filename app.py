@@ -36,6 +36,12 @@ def init_db():
             FOREIGN KEY(item_id) REFERENCES items(id)
         )
         ''')
+        cursor.execute('INSERT INTO items (name, price) VALUES (?, ?)', ('Apple', 125))
+        cursor.execute('INSERT INTO items (name, price) VALUES (?, ?)', ('Banana', 90))
+        cursor.execute('INSERT INTO items (name, price) VALUES (?, ?)', ('Orange', 150))
+        cursor.execute('INSERT INTO items (name, price) VALUES (?, ?)', ('Mango', 275))
+        cursor.execute('INSERT INTO items (name, price) VALUES (?, ?)', ('Grapes', 300))
+        cursor.execute('INSERT INTO items (name, price) VALUES (?, ?)', ('Watermelon', 450))
         conn.commit()
 
 @app.route('/')
