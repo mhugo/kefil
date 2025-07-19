@@ -67,7 +67,26 @@ def list_orders():
         cursor = conn.cursor()
         cursor.execute('SELECT * FROM orders')
         orders = cursor.fetchall()
-        return jsonify(orders)
+        
+        order_list = []
+        for order in orders:
+            order_id, timestamp, method, total = order
+            cursor.execute('''
+                SELECT items.name, items.price, order_items.quantity 
+                FROM order_items 
+                JOIN items ON order_items.item_id = items.id 
+                WHERE order_items.order_id = ?
+            ''', (order_id,))
+            items = cursor.fetchall()
+            order_list.append({
+                'id': order_id,
+                'timestamp': timestamp,
+                'method': method,
+                'total': total,
+                'items': [{'name': item[0], 'price': item[1], 'quantity': item[2]} for item in items]
+            })
+        
+        return jsonify(order_list)
 
 @app.route('/orders', methods=['POST'])
 def add_order():
