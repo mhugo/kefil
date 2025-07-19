@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, send_from_directory
 import sqlite3
 
 app = Flask(__name__)
@@ -19,7 +19,9 @@ def init_db():
         ''')
         conn.commit()
 
-@app.route('/orders', methods=['GET'])
+@app.route('/')
+def serve_index():
+    return send_from_directory('html', 'index.html')
 def list_orders():
     with sqlite3.connect(DATABASE) as conn:
         cursor = conn.cursor()
