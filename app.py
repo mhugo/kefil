@@ -41,16 +41,16 @@ def init_db():
         cursor.execute('INSERT INTO items (name, price) VALUES (?, ?)', ('Grapes', 300))
         cursor.execute('INSERT INTO items (name, price) VALUES (?, ?)', ('Watermelon', 450))
         # Insert sample orders
-        cursor.execute('INSERT INTO orders (timestamp, method, total) VALUES (?, ?, ?)', 
-                       ('2025-07-19T12:00:00', 'Cash', 365))
+        cursor.execute('INSERT INTO orders (timestamp, total) VALUES (?, ?)', 
+                       ('2025-07-19T12:00:00', 365))
         order_id_1 = cursor.lastrowid
         cursor.execute('INSERT INTO order_items (order_id, item_id, quantity) VALUES (?, ?, ?)', 
                        (order_id_1, 1, 1))  # Apple
         cursor.execute('INSERT INTO order_items (order_id, item_id, quantity) VALUES (?, ?, ?)', 
                        (order_id_1, 2, 2))  # Banana
 
-        cursor.execute('INSERT INTO orders (timestamp, method, total) VALUES (?, ?, ?)', 
-                       ('2025-07-19T13:00:00', 'Card', 450))
+        cursor.execute('INSERT INTO orders (timestamp, total) VALUES (?, ?)', 
+                       ('2025-07-19T13:00:00', 450))
         order_id_2 = cursor.lastrowid
         cursor.execute('INSERT INTO order_items (order_id, item_id, quantity) VALUES (?, ?, ?)', 
                        (order_id_2, 3, 3))  # Orange
