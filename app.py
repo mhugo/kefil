@@ -41,6 +41,7 @@ def init_db():
 @app.route('/')
 def serve_index():
     return send_from_directory('html', 'index.html')
+@app.route('/orders', methods=['GET'])
 def list_orders():
     with sqlite3.connect(DATABASE) as conn:
         cursor = conn.cursor()
