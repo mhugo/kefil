@@ -13,7 +13,6 @@ def init_db():
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 timestamp TEXT NOT NULL,
                 method TEXT NOT NULL,
-                items TEXT NOT NULL,
                 total INTEGER NOT NULL
             )
         ''')
