@@ -223,8 +223,8 @@
 </head>
 <body>
   <div class="tabs">
-    <button class="tab-button active" onclick="showTab('main')">Main</button>
-    <button class="tab-button" onclick="showTab('orders')">Orders</button>
+    <button class="tab-button active" onclick="showTab('main')">Commande</button>
+    <button class="tab-button" onclick="showTab('history')">Historique</button>
   </div>
 
   <div class="tab active" id="main">
@@ -243,15 +243,15 @@
     <div class="footer">
       <div class="payment-buttons">
         <button class="pay-button pay-cash" onclick="addPayment('Cash')">Cash</button>
-        <button class="pay-button pay-card" onclick="addPayment('Card')">Card</button>
+        <button class="pay-button pay-card" onclick="addPayment('CB')">CB</button>
         <button class="pay-button" onclick="finalizePayment()">Valider</button>
       </div>
     </div>
 
   </div>
 
-  <div class="tab" id="orders">
-    <h1>Order History</h1>
+  <div class="tab" id="history">
+    <h1>Historique des commandes</h1>
     <ul id="orderList"></ul>
   </div>
 
@@ -279,7 +279,7 @@
           orderList.innerHTML = '';
           orders.forEach(order => {
             const li = document.createElement('li');
-            li.textContent = `Order #${order.id} - ${order.timestamp} - ${order.method} - Total: ${formatCents(order.total)}`;
+            li.textContent = `Commande #${order.id} - ${order.timestamp} - ${order.method} - Total: ${formatCents(order.total)}`;
             orderList.appendChild(li);
           });
         });
@@ -342,7 +342,7 @@
         textTotal.textContent = `Total: ${formatCents(total)}`;
 
         const textDiscount = document.getElementById('textDiscount');
-        textDiscount.textContent = (discount > 0) ? `Discount: ${formatCents(discount)}` : '';
+        textDiscount.textContent = (discount > 0) ? `Remise: ${formatCents(discount)}` : '';
 
         const textRemaining = document.getElementById('textRemaining');
         let remaining = total - discount - paid;
@@ -352,10 +352,10 @@
         else {
             textRemaining.className = 'remaining-text';
         }
-        textRemaining.textContent = `Remaining: ${formatCents(remaining)}`;
+        textRemaining.textContent = `Reste à payer: ${formatCents(remaining)}`;
 
         const textPayment = document.getElementById('textPayment');
-        textPayment.textContent = (paymentMethod !== '') ? `Payment method: ${paymentMethod}` : '';
+        textPayment.textContent = (paymentMethod !== '') ? `Mode de paiement: ${paymentMethod}` : '';
     }
 
     function addToBasket(item) {
@@ -408,7 +408,6 @@
         };
 
         console.log("Saving order:", order);
-        //saveOrderToLocalStorage(order);
         const request = new Request(
             "/orders", {
                 method: "POST",
