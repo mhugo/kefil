@@ -244,6 +244,7 @@
       <div class="payment-buttons">
         <button class="pay-button pay-cash" onclick="addPayment('Cash')">Cash</button>
         <button class="pay-button pay-card" onclick="addPayment('Card')">Card</button>
+        <button class="pay-button" onclick="finalizePayment()">Valider</button>
       </div>
     </div>
 
@@ -303,7 +304,7 @@
         list.innerHTML = '';
 
         for (const key in basket) {
-            const { item, quantity } = basket[key];
+            const { id, item, quantity } = basket[key];
             const total = item.price * quantity;
 
           const info1 = document.createElement('div');
@@ -329,7 +330,7 @@
     function computeTotal() {
         let total = 0;
         for (const key in basket) {
-            const { item, quantity } = basket[key];
+            const { id, item, quantity } = basket[key];
             total += item.price * quantity;
         }
         return total;
@@ -359,7 +360,7 @@
 
     function addToBasket(item) {
       if (!basket[item.id]) {
-        basket[item.id] = { item, quantity: 0 };
+          basket[item.id] = { id: item.id, item, quantity: 0 };
       }
       basket[item.id].quantity += 1;
       updateBasket();
@@ -385,36 +386,47 @@
         updateTotal();
     }
 
-    function finalizePayment(method) {
+    function finalizePayment() {
         const orderItems = [];
         let total = 0;
         
         for (const key in basket) {
-            const { item, quantity } = basket[key];
+            const { id, item, quantity } = basket[key];
             const lineTotal = item.price * quantity;
             orderItems.push({
-                name: item.label,
-                quantity,
-                unitPrice: item.price,
-                total: lineTotal
+                id,
+                quantity
             });
             total += lineTotal;
         }
 
         const order = {
             timestamp: new Date().toISOString(),
-            method,
+            method: paymentMethod,
             items: orderItems,
             total
         };
 
         console.log("Saving order:", order);
         //saveOrderToLocalStorage(order);
+        const request = new Request(
+            "/orders", {
+                method: "POST",
+                body: JSON.stringify(order),
+                headers: {
+                    'Content-Type': 'application/json; charset=utf-8'
+                }
+            }
+        );
+        fetch(request);
 
         // Clear basket
         for (const key in basket) {
             delete basket[key];
         }
+        paid = 0;
+        discount = 0;
+        paymentMethod = '';
         updateBasket();
         updateTotal();
     }
