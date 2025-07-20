@@ -10,29 +10,38 @@
       font-family: sans-serif;
     }
 
-    .header {
-        //position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      height: 40vh;
+    .tab {
+        display: none;
+    }
+
+    .tab.active {
+        display: flex;
+        flex-wrap: wrap;
+    }
+
+    .tabs {
+        display: flex;
+        height: 5vh;
+      justify-content: center;
+    }
+
+    .basket {
+        width: 30%;
+        height: 80vh;
       background-color: #007bff;
       color: white;
       overflow-y: auto;
-      padding: 1rem;
+      padding: 0;
       box-sizing: border-box;
       z-index: 10;
     }
 
     .footer {
-      position: fixed;
-      bottom: 0;
-      left: 0;
-      right: 0;
-      height: 15vh;
+        height: 15vh;
+        width: 100%;
       background-color: #343a40;
       color: white;
-      padding: 1rem;
+      padding: 0;
       box-sizing: border-box;
       display: flex;
       flex-direction: column;
@@ -43,7 +52,15 @@
     .total-text {
       font-size: 1.4rem;
       margin-bottom: 0.5rem;
-      text-align: center;
+      text-align: end;
+    }
+    .remaining-text {
+      font-size: 1.4rem;
+      margin-bottom: 0.5rem;
+      text-align: end;
+    }
+    .remaining-text.positive {
+        color: red;
     }
 
     .payment-buttons {
@@ -76,11 +93,7 @@
     }
 
     .content {
-      position: absolute;
-      top: 40vh;
-      bottom: 15vh;
-      left: 0;
-      right: 0;
+        width: 70%;
       overflow-y: auto;
       background-color: #f8f9fa;
       padding: 1rem;
@@ -110,12 +123,9 @@
       color: white;
     }
 
-    .header-content {
-      margin-top: 0.5rem;
-    }
-
     .basket-list {
-      list-style: none;
+      display: grid;
+      grid-template-columns: repeat(10, 1fr);
       margin: 0;
       padding: 0;
     }
@@ -130,6 +140,22 @@
       padding: 0.3rem 0.5rem;
       border-radius: 0.4rem;
     }
+
+    .basket-item1 {
+      font-size: 1.1rem;
+      background-color: rgba(255, 255, 255, 0.1);
+      border-radius: 0.4rem;
+      grid-column: 1 / 8;
+    }
+    .basket-item2 {
+      font-size: 1.1rem;
+      background-color: rgba(255, 255, 255, 0.1);
+      border-radius: 0.4rem;
+      grid-column: 8 / 10;
+      display: flex;
+      justify-content: space-between;
+    }
+    
 
     .remove-button {
       background-color: #dc3545;
@@ -151,16 +177,6 @@
   top: 1rem;
   right: 1rem;
   z-index: 20;
-}
-
-.hamburger {
-  background-color: #ffffff;
-  color: #007bff;
-  font-size: 1.5rem;
-  border: 2px solid #007bff;
-  border-radius: 0.5rem;
-  padding: 0.3rem 0.7rem;
-  cursor: pointer;
 }
 
 .dropdown {
@@ -190,20 +206,6 @@
 .dropdown button:hover {
   background-color: #f0f0f0;
     }
-    .tab {
-      display: none;
-    }
-
-    .tab.active {
-      display: block;
-    }
-
-    .tabs {
-      display: flex;
-      justify-content: center;
-      margin-bottom: 1rem;
-    }
-
     .tab-button {
       padding: 0.5rem 1rem;
       margin: 0 0.5rem;
@@ -226,21 +228,24 @@
   </div>
 
   <div class="tab active" id="main">
-    <div class="header" id="header">
-    <ul class="basket-list" id="headerContent"></ul>
-  </div>
-
-  <div class="content">
-    <div class="grid" id="buttonGrid"></div>
-  </div>
-
-  <div class="footer">
-    <div class="total-text" id="footerTotal">Total: 0.00 €</div>
-    <div class="payment-buttons">
-      <button class="pay-button pay-cash" onclick="finalizePayment('Cash')">Cash</button>
-      <button class="pay-button pay-card" onclick="finalizePayment('Card')">Card</button>
+    <div class="basket" id="basket">
+      <div class="basket-list" id="basketContent"></div>
+      <div class="total-text" id="textTotal">Total: 0.00 €</div>
+      <div class="total-text" id="textDiscount"></div>
+      <div class="remaining-text" id="textRemaining"></div>
+      <div class="total-text" id="textPayment"></div>
     </div>
-  </div>
+
+    <div class="content">
+      <div class="grid" id="buttonGrid"></div>
+    </div>
+
+    <div class="footer">
+      <div class="payment-buttons">
+        <button class="pay-button pay-cash" onclick="addPayment('Cash')">Cash</button>
+        <button class="pay-button pay-card" onclick="addPayment('Card')">Card</button>
+      </div>
+    </div>
 
   </div>
 
@@ -284,43 +289,72 @@
 
     const basket = {};
 
+    let discount = 0;
+    let paid = 0;
+    let paymentMethod = '';
+    
+
     function formatCents(cents) {
       return `${(cents / 100).toFixed(2)} €`;
     }
 
-    function updateHeader() {
-      const list = document.getElementById('headerContent');
-      list.innerHTML = '';
+    function updateBasket() {
+        const list = document.getElementById('basketContent');
+        list.innerHTML = '';
 
-      for (const key in basket) {
-        const { item, quantity } = basket[key];
-        const total = item.price * quantity;
+        for (const key in basket) {
+            const { item, quantity } = basket[key];
+            const total = item.price * quantity;
 
-        const li = document.createElement('li');
-        li.className = 'basket-item';
+          const info1 = document.createElement('div');
+          info1.className = 'basket-item1';
 
-        const info = document.createElement('span');
-        info.textContent = `${item.label} - x${quantity} - ${formatCents(total)}`;
+          const info2 = document.createElement('div');
+          info2.className = 'basket-item2';
+          
+          info1.textContent = `${item.label} - x${quantity}`;
+          info2.textContent = `${formatCents(total)} `;
 
-        const removeBtn = document.createElement('button');
-        removeBtn.className = 'remove-button';
-        removeBtn.textContent = '−';
-        removeBtn.onclick = () => removeFromBasket(item);
+          const removeBtn = document.createElement('button');
+          removeBtn.className = 'remove-button';
+          removeBtn.textContent = '−';
+          removeBtn.onclick = () => removeFromBasket(item);
 
-        li.appendChild(info);
-        li.appendChild(removeBtn);
-        list.appendChild(li);
+          info2.appendChild(removeBtn);
+          list.appendChild(info1);
+          list.appendChild(info2);
       }
     }
 
-    function updateFooter() {
-      const footerTotal = document.getElementById('footerTotal');
-      let total = 0;
-      for (const key in basket) {
-        const { item, quantity } = basket[key];
-        total += item.price * quantity;
-      }
-      footerTotal.textContent = `Total: ${formatCents(total)}`;
+    function computeTotal() {
+        let total = 0;
+        for (const key in basket) {
+            const { item, quantity } = basket[key];
+            total += item.price * quantity;
+        }
+        return total;
+    }
+
+    function updateTotal() {
+        const textTotal = document.getElementById('textTotal');
+        let total = computeTotal();
+        textTotal.textContent = `Total: ${formatCents(total)}`;
+
+        const textDiscount = document.getElementById('textDiscount');
+        textDiscount.textContent = (discount > 0) ? `Discount: ${formatCents(discount)}` : '';
+
+        const textRemaining = document.getElementById('textRemaining');
+        let remaining = total - discount - paid;
+        if (remaining > 0) {
+            textRemaining.className = 'remaining-text positive';
+        }
+        else {
+            textRemaining.className = 'remaining-text';
+        }
+        textRemaining.textContent = `Remaining: ${formatCents(remaining)}`;
+
+        const textPayment = document.getElementById('textPayment');
+        textPayment.textContent = (paymentMethod !== '') ? `Payment method: ${paymentMethod}` : '';
     }
 
     function addToBasket(item) {
@@ -328,8 +362,8 @@
         basket[item.id] = { item, quantity: 0 };
       }
       basket[item.id].quantity += 1;
-      updateHeader();
-      updateFooter();
+      updateBasket();
+      updateTotal();
     }
 
     function removeFromBasket(item) {
@@ -339,9 +373,16 @@
         if (entry.quantity === 0) {
           delete basket[item.id];
         }
-        updateHeader();
-        updateFooter();
+        updateBasket();
+        updateTotal();
       }
+    }
+
+    function addPayment(method) {
+        let total = computeTotal();
+        paid = total - discount;
+        paymentMethod = method;
+        updateTotal();
     }
 
     function finalizePayment(method) {
@@ -374,8 +415,8 @@
         for (const key in basket) {
             delete basket[key];
         }
-        updateHeader();
-        updateFooter();
+        updateBasket();
+        updateTotal();
     }
 
 
