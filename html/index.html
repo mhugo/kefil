@@ -190,10 +190,42 @@
 .dropdown button:hover {
   background-color: #f0f0f0;
     }
-  </style>
+    .tab {
+      display: none;
+    }
+
+    .tab.active {
+      display: block;
+    }
+
+    .tabs {
+      display: flex;
+      justify-content: center;
+      margin-bottom: 1rem;
+    }
+
+    .tab-button {
+      padding: 0.5rem 1rem;
+      margin: 0 0.5rem;
+      cursor: pointer;
+      background-color: #007bff;
+      color: white;
+      border: none;
+      border-radius: 0.5rem;
+    }
+
+    .tab-button.active {
+      background-color: #0056b3;
+    }
 </head>
 <body>
-  <div class="header" id="header">
+  <div class="tabs">
+    <button class="tab-button active" onclick="showTab('main')">Main</button>
+    <button class="tab-button" onclick="showTab('orders')">Orders</button>
+  </div>
+
+  <div class="tab active" id="main">
+    <div class="header" id="header">
     <ul class="basket-list" id="headerContent"></ul>
   </div>
 
@@ -209,7 +241,42 @@
     </div>
   </div>
 
+  </div>
+
+  <div class="tab" id="orders">
+    <h1>Order History</h1>
+    <ul id="orderList"></ul>
+  </div>
+
   <script>
+    function showTab(tabId) {
+      document.querySelectorAll('.tab').forEach(tab => {
+        tab.classList.remove('active');
+      });
+      document.querySelectorAll('.tab-button').forEach(button => {
+        button.classList.remove('active');
+      });
+      document.getElementById(tabId).classList.add('active');
+      document.querySelector(`.tab-button[onclick="showTab('${tabId}')"]`).classList.add('active');
+      
+      if (tabId === 'orders') {
+        fetchOrders();
+      }
+    }
+
+    function fetchOrders() {
+      fetch('/orders')
+        .then(response => response.json())
+        .then(orders => {
+          const orderList = document.getElementById('orderList');
+          orderList.innerHTML = '';
+          orders.forEach(order => {
+            const li = document.createElement('li');
+            li.textContent = `Order #${order.id} - ${order.timestamp} - ${order.method} - Total: ${formatCents(order.total)}`;
+            orderList.appendChild(li);
+          });
+        });
+    }
     const config = {
         items: {{items_list|safe}}
     };
