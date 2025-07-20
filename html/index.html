@@ -224,6 +224,7 @@
 <body>
   <div class="tabs">
     <button class="tab-button active" onclick="showTab('main')">Commande</button>
+    <button class="tab-button" onclick="showTab('summary')">Résumé</button>
     <button class="tab-button" onclick="showTab('history')">Historique</button>
   </div>
 
@@ -250,6 +251,9 @@
 
   </div>
 
+  <div class="tab" id="summary">
+  </div>
+
   <div class="tab" id="history">
     <h1>Historique des commandes</h1>
     <ul id="orderList"></ul>
@@ -266,9 +270,12 @@
       document.getElementById(tabId).classList.add('active');
       document.querySelector(`.tab-button[onclick="showTab('${tabId}')"]`).classList.add('active');
       
-      if (tabId === 'orders') {
+      if (tabId === 'history') {
         fetchOrders();
       }
+        if (tabId === 'summary') {
+            fetchSummary();
+        }
     }
 
     function fetchOrders() {
@@ -284,6 +291,17 @@
           });
         });
     }
+
+    function fetchSummary() {
+        let currentDate = new Date().toJSON().slice(0, 10);
+      fetch('/summary?date=' + currentDate)
+            .then(response => response.text())
+            .then(summaryText => {
+                const summary = document.getElementById("summary");
+                summary.innerHTML = summaryText;
+            });
+    }
+    
     const config = {
         items: {{items_list|safe}}
     };

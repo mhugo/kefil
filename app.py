@@ -57,7 +57,7 @@ def init_db():
         # Insert sample orders
         cursor.execute(
             "INSERT INTO orders (timestamp, method, total) VALUES (?, ?, ?)",
-            ("2025-07-19T12:00:00", "Cash", 365),
+            ("2025-07-20T12:00:00", "Cash", 365),
         )
         order_id_1 = cursor.lastrowid
         cursor.execute(
@@ -71,7 +71,7 @@ def init_db():
 
         cursor.execute(
             "INSERT INTO orders (timestamp, method, total) VALUES (?, ?, ?)",
-            ("2025-07-19T13:00:00", "Card", 450),
+            ("2025-07-20T13:00:00", "Card", 450),
         )
         order_id_2 = cursor.lastrowid
         cursor.execute(
@@ -150,6 +150,25 @@ def add_order():
             )
         conn.commit()
         return jsonify({"id": cursor.lastrowid}), 201
+
+
+@app.route("/summary", methods=["GET"])
+def get_summary():
+    date = request.args["date"]
+    print(f"date: {date}")
+
+    with sqlite3.connect(DATABASE) as conn:
+        cursor = conn.cursor()
+        cursor.execute(
+            "select count(*) as n_orders, sum(total) as total from orders where date(timestamp) = ?",
+            (date,),
+        )
+        n_orders, total = cursor.fetchone()
+
+    with open("html/summary.html", "r") as file:
+        html_template = file.read()
+
+    return render_template_string(html_template, n_orders=n_orders, total=total)
 
 
 if __name__ == "__main__":
