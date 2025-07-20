@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify, send_from_directory
+from flask import Flask, request, jsonify, render_template_string
 import sqlite3
 
 app = Flask(__name__)
@@ -60,7 +60,29 @@ def init_db():
 
 @app.route('/')
 def serve_index():
-    return send_from_directory('html', 'index.html')
+    with sqlite3.connect(DATABASE) as conn:
+        cursor = conn.cursor()
+        cursor.execute('SELECT name, price FROM items')
+        items = cursor.fetchall()
+
+    items_html = ''.join(f'<li>{name} - {price} cents</li>' for name, price in items)
+    html_content = f'''
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Items</title>
+    </head>
+    <body>
+        <h1>Items List</h1>
+        <ul>
+            {items_html}
+        </ul>
+    </body>
+    </html>
+    '''
+    return render_template_string(html_content)
 @app.route('/orders', methods=['GET'])
 def list_orders():
     with sqlite3.connect(DATABASE) as conn:
