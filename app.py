@@ -60,28 +60,16 @@ def init_db():
 
 @app.route('/')
 def serve_index():
+    with open('html/index.html', 'r') as file:
+        html_template = file.read()
+
     with sqlite3.connect(DATABASE) as conn:
         cursor = conn.cursor()
         cursor.execute('SELECT name, price FROM items')
         items = cursor.fetchall()
 
     items_html = ''.join(f'<li>{name} - {price} cents</li>' for name, price in items)
-    html_content = f'''
-    <!DOCTYPE html>
-    <html lang="en">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Items</title>
-    </head>
-    <body>
-        <h1>Items List</h1>
-        <ul>
-            {items_html}
-        </ul>
-    </body>
-    </html>
-    '''
+    html_content = html_template.format(items_list=items_html)
     return render_template_string(html_content)
 @app.route('/orders', methods=['GET'])
 def list_orders():
