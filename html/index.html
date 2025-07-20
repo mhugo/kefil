@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <style>
+    html, body {
+      margin: 0;
+      height: 100%;
+      font-family: sans-serif;
+    }
+
+    .header {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 40vh;
+      background-color: #007bff;
+      color: white;
+      overflow-y: auto;
+      padding: 1rem;
+      box-sizing: border-box;
+      z-index: 10;
+    }
+
+    .footer {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 15vh;
+      background-color: #343a40;
+      color: white;
+      padding: 1rem;
+      box-sizing: border-box;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      z-index: 10;
+    }
+
+    .total-text {
+      font-size: 1.4rem;
+      margin-bottom: 0.5rem;
+      text-align: center;
+    }
+
+    .payment-buttons {
+      display: flex;
+      justify-content: center;
+      gap: 1rem;
+    }
+
+    .pay-button {
+      padding: 1rem 2rem;
+      font-size: 1.1rem;
+      font-weight: bold;
+      border: none;
+      border-radius: 0.5rem;
+      cursor: pointer;
+    }
+
+    .pay-cash {
+      background-color: #28a745;
+      color: white;
+    }
+
+    .pay-card {
+      background-color: #17a2b8;
+      color: white;
+    }
+
+    .pay-button:active {
+      transform: scale(0.97);
+    }
+
+    .content {
+      position: absolute;
+      top: 40vh;
+      bottom: 15vh;
+      left: 0;
+      right: 0;
+      overflow-y: auto;
+      background-color: #f8f9fa;
+      padding: 1rem;
+      box-sizing: border-box;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+      gap: 1rem;
+    }
+
+    .square-button {
+      aspect-ratio: 1 / 1;
+      background-color: #ffffff;
+      border: 2px solid #007bff;
+      color: #007bff;
+      font-weight: bold;
+      cursor: pointer;
+      transition: background-color 0.2s, color 0.2s;
+      border-radius: 0.5rem;
+      font-size: 1.2rem;
+    }
+
+    .square-button:hover {
+      background-color: #007bff;
+      color: white;
+    }
+
+    .header-content {
+      margin-top: 0.5rem;
+    }
+
+    .basket-list {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+    }
+
+    .basket-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 1.1rem;
+      margin-bottom: 0.4rem;
+      background-color: rgba(255, 255, 255, 0.1);
+      padding: 0.3rem 0.5rem;
+      border-radius: 0.4rem;
+    }
+
+    .remove-button {
+      background-color: #dc3545;
+      border: none;
+      color: white;
+      font-size: 1.1rem;
+      width: 2rem;
+      height: 2rem;
+      border-radius: 50%;
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+
+    .remove-button:active {
+      background-color: #c82333;
+    }
+.menu {
+  position: fixed;
+  top: 1rem;
+  right: 1rem;
+  z-index: 20;
+}
+
+.hamburger {
+  background-color: #ffffff;
+  color: #007bff;
+  font-size: 1.5rem;
+  border: 2px solid #007bff;
+  border-radius: 0.5rem;
+  padding: 0.3rem 0.7rem;
+  cursor: pointer;
+}
+
+.dropdown {
+  display: none;
+  flex-direction: column;
+  position: absolute;
+  top: 2.5rem;
+  right: 0;
+  background-color: white;
+  border: 1px solid #ccc;
+  border-radius: 0.5rem;
+  box-shadow: 0 0 8px rgba(0,0,0,0.1);
+  padding: 0.5rem;
+  z-index: 30;
+}
+
+.dropdown button {
+  background: none;
+  border: none;
+  padding: 0.5rem;
+  text-align: left;
+  font-size: 1rem;
+  cursor: pointer;
+  color: #007bff;
+}
+
+.dropdown button:hover {
+  background-color: #f0f0f0;
+    }
+  </style>
+</head>
+<body>
+  <div class="header" id="header">
+    <ul class="basket-list" id="headerContent"></ul>
+  </div>
+
+  <div class="content">
+    <div class="grid" id="buttonGrid"></div>
+  </div>
+
+  <div class="footer">
+    <div class="total-text" id="footerTotal">Total: 0.00 €</div>
+    <div class="payment-buttons">
+      <button class="pay-button pay-cash" onclick="finalizePayment('Cash')">Cash</button>
+      <button class="pay-button pay-card" onclick="finalizePayment('Card')">Card</button>
+    </div>
+  </div>
+
+  <script>
+    const config = {
+        items: {{items_list|safe}}
+    };
+
+    const basket = {};
+
+    function formatCents(cents) {
+      return `${(cents / 100).toFixed(2)} €`;
+    }
+
+    function updateHeader() {
+      const list = document.getElementById('headerContent');
+      list.innerHTML = '';
+
+      for (const key in basket) {
+        const { item, quantity } = basket[key];
+        const total = item.price * quantity;
+
+        const li = document.createElement('li');
+        li.className = 'basket-item';
+
+        const info = document.createElement('span');
+        info.textContent = `${item.label} - x${quantity} - ${formatCents(total)}`;
+
+        const removeBtn = document.createElement('button');
+        removeBtn.className = 'remove-button';
+        removeBtn.textContent = '−';
+        removeBtn.onclick = () => removeFromBasket(item);
+
+        li.appendChild(info);
+        li.appendChild(removeBtn);
+        list.appendChild(li);
+      }
+    }
+
+    function updateFooter() {
+      const footerTotal = document.getElementById('footerTotal');
+      let total = 0;
+      for (const key in basket) {
+        const { item, quantity } = basket[key];
+        total += item.price * quantity;
+      }
+      footerTotal.textContent = `Total: ${formatCents(total)}`;
+    }
+
+    function addToBasket(item) {
+      if (!basket[item.id]) {
+        basket[item.id] = { item, quantity: 0 };
+      }
+      basket[item.id].quantity += 1;
+      updateHeader();
+      updateFooter();
+    }
+
+    function removeFromBasket(item) {
+      const entry = basket[item.id];
+      if (entry && entry.quantity > 0) {
+        entry.quantity -= 1;
+        if (entry.quantity === 0) {
+          delete basket[item.id];
+        }
+        updateHeader();
+        updateFooter();
+      }
+    }
+
+    function finalizePayment(method) {
+        const orderItems = [];
+        let total = 0;
+        
+        for (const key in basket) {
+            const { item, quantity } = basket[key];
+            const lineTotal = item.price * quantity;
+            orderItems.push({
+                name: item.label,
+                quantity,
+                unitPrice: item.price,
+                total: lineTotal
+            });
+            total += lineTotal;
+        }
+
+        const order = {
+            timestamp: new Date().toISOString(),
+            method,
+            items: orderItems,
+            total
+        };
+
+        console.log("Saving order:", order);
+        //saveOrderToLocalStorage(order);
+
+        // Clear basket
+        for (const key in basket) {
+            delete basket[key];
+        }
+        updateHeader();
+        updateFooter();
+    }
+
+
+    const grid = document.getElementById('buttonGrid');
+    config.items.forEach(item => {
+        const btn = document.createElement('button');
+        btn.className = 'square-button';
+        btn.textContent = item.label;
+        btn.onclick = () => addToBasket(item);
+        grid.appendChild(btn);
+    });
+  </script>
+</body>
+</html>
