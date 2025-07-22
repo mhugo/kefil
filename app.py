@@ -168,7 +168,9 @@ def get_summary():
     with open("html/summary.html", "r") as file:
         html_template = file.read()
 
-    return render_template_string(html_template, n_orders=n_orders, total=total)
+    return render_template_string(
+        html_template, n_orders=n_orders or 0, total=total or 0
+    )
 
 
 if __name__ == "__main__":

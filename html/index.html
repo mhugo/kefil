@@ -405,6 +405,13 @@
     }
 
     function finalizePayment() {
+        if (computeTotal()-discount > paid) {
+            window.alert("Mode de paiement non renseigné !");
+            return;
+        }
+        if (!window.confirm("La commande a t-elle bien été payée ?")) {
+            return;
+        }
         const orderItems = [];
         let total = 0;
         
