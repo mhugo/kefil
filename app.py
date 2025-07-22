@@ -14,6 +14,7 @@ def init_db():
             """
             CREATE TABLE IF NOT EXISTS orders (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
+                id_in_day INTEGER,
                 timestamp TEXT NOT NULL,
                 method TEXT NOT NULL,
                 total INTEGER NOT NULL
@@ -56,8 +57,8 @@ def init_db():
         )
         # Insert sample orders
         cursor.execute(
-            "INSERT INTO orders (timestamp, method, total) VALUES (?, ?, ?)",
-            ("2025-07-20T12:00:00", "Cash", 365),
+            "INSERT INTO orders (id_in_day, timestamp, method, total) VALUES (?, ?, ?, ?)",
+            (1, "2025-07-20T12:00:00", "Cash", 365),
         )
         order_id_1 = cursor.lastrowid
         cursor.execute(
@@ -70,8 +71,8 @@ def init_db():
         )  # Banana
 
         cursor.execute(
-            "INSERT INTO orders (timestamp, method, total) VALUES (?, ?, ?)",
-            ("2025-07-20T13:00:00", "Card", 450),
+            "INSERT INTO orders (id_in_day, timestamp, method, total) VALUES (?, ?, ?, ?)",
+            (2, "2025-07-20T13:00:00", "Card", 450),
         )
         order_id_2 = cursor.lastrowid
         cursor.execute(
@@ -137,9 +138,15 @@ def add_order():
     order_data = request.get_json()
     with sqlite3.connect(DATABASE) as conn:
         cursor = conn.cursor()
+        timestamp = order_data["timestamp"]
         cursor.execute(
-            "INSERT INTO orders (timestamp, method, total) VALUES (?, ?, ?)",
-            (order_data["timestamp"], order_data["method"], order_data["total"]),
+            "select max(id_in_day) from orders where date(timestamp) = date(?)",
+            (timestamp,),
+        )
+        last_id = cursor.fetchone()[0] or 0
+        cursor.execute(
+            "INSERT INTO orders (id_in_day, timestamp, method, total) VALUES (?, ?, ?, ?)",
+            (last_id + 1, timestamp, order_data["method"], order_data["total"]),
         )
         order_id = cursor.lastrowid
 
@@ -155,22 +162,26 @@ def add_order():
 @app.route("/summary", methods=["GET"])
 def get_summary():
     date = request.args["date"]
-    print(f"date: {date}")
 
     with sqlite3.connect(DATABASE) as conn:
         cursor = conn.cursor()
         cursor.execute(
-            "select count(*) as n_orders, sum(total) as total from orders where date(timestamp) = ?",
+            "select count(*) as n_orders, sum(total) as total, max(id_in_day) as last_id from orders where date(timestamp) = ?",
             (date,),
         )
-        n_orders, total = cursor.fetchone()
+        n_orders, total, last_id = cursor.fetchone()
 
-    with open("html/summary.html", "r") as file:
-        html_template = file.read()
+    if "application/json" in request.headers.get("accept", ""):
+        return jsonify(
+            {"n_orders": n_orders or 0, "total": total or 0, "last_id": last_id or 0}
+        )
+    else:
+        with open("html/summary.html", "r") as file:
+            html_template = file.read()
 
-    return render_template_string(
-        html_template, n_orders=n_orders or 0, total=total or 0
-    )
+            return render_template_string(
+                html_template, n_orders=n_orders or 0, total=total or 0
+            )
 
 
 if __name__ == "__main__":

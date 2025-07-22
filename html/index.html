@@ -230,6 +230,7 @@
 
   <div class="tab active" id="main">
     <div class="basket" id="basket">
+      <div id="next_id"></div>
       <div class="basket-list" id="basketContent"></div>
       <div class="total-text" id="textTotal">Total: 0.00 €</div>
       <div class="total-text" id="textDiscount"></div>
@@ -269,16 +270,30 @@
       });
       document.getElementById(tabId).classList.add('active');
       document.querySelector(`.tab-button[onclick="showTab('${tabId}')"]`).classList.add('active');
-      
-      if (tabId === 'history') {
-        fetchOrders();
-      }
-        if (tabId === 'summary') {
-            fetchSummary();
+
+        const init_function_name = "init_tab_" + tabId;
+        if (typeof window[init_function_name] == "function") {
+            window[init_function_name]();
         }
     }
 
-    function fetchOrders() {
+    function init_tab_main() {
+        let currentDate = new Date().toJSON().slice(0, 10);
+        const request = new Request(
+            "/summary?date=" + currentDate, {
+                method: "GET",
+                headers: {
+                    'Accept': 'application/json'
+                }
+            }
+        );
+        fetch(request)
+            .then(response => response.json())
+            .then(summary => {
+                document.getElementById('next_id').innerHTML = `<b>Commande #${summary.last_id + 1}</b>`;
+            });
+    }
+    function init_tab_history() {
       fetch('/orders')
         .then(response => response.json())
         .then(orders => {
@@ -292,7 +307,7 @@
         });
     }
 
-    function fetchSummary() {
+    function init_tab_summary() {
         let currentDate = new Date().toJSON().slice(0, 10);
       fetch('/summary?date=' + currentDate)
             .then(response => response.text())
@@ -405,7 +420,12 @@
     }
 
     function finalizePayment() {
-        if (computeTotal()-discount > paid) {
+        let total_basket = computeTotal();
+        if (total_basket == 0 ) {
+            window.alert("Panier vide !");
+            return;
+        }
+        if (total_basket-discount > paid) {
             window.alert("Mode de paiement non renseigné !");
             return;
         }
@@ -453,6 +473,7 @@
         paymentMethod = '';
         updateBasket();
         updateTotal();
+        showTab('main');
     }
 
 
@@ -464,6 +485,8 @@
         btn.onclick = () => addToBasket(item);
         grid.appendChild(btn);
     });
+
+    showTab('main');
   </script>
 </body>
 </html>
