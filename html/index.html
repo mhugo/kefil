@@ -76,16 +76,19 @@
       border: none;
       border-radius: 0.5rem;
       cursor: pointer;
-    }
-
-    .pay-cash {
-      background-color: #28a745;
-      color: white;
-    }
-
-    .pay-card {
       background-color: #17a2b8;
       color: white;
+    }
+
+    .validate-button {
+      padding: 1rem 2rem;
+      font-size: 1.1rem;
+      font-weight: bold;
+      border: none;
+      border-radius: 0.5rem;
+      cursor: pointer;
+      background-color: white;
+      color: black;
     }
 
     .pay-button:active {
@@ -219,7 +222,26 @@
     .tab-button.active {
       background-color: #0056b3;
     }
-</style>
+table {
+      border-collapse: collapse;
+      width: 100%;
+      margin-bottom: 1.5rem;
+    }
+    th, td {
+      border: 1px solid #dee2e6;
+      padding: 0.75rem;
+    }
+    th {
+      background-color: #f8f9fa;
+      text-align: left;
+    }
+    td.number {
+      text-align: right;
+      font-weight: bold;
+    }
+    h1, h2 {
+      color: #343a40;
+    }</style>
 </head>
 <body>
   <div class="tabs">
@@ -244,15 +266,16 @@
 
     <div class="footer">
       <div class="payment-buttons">
-        <button class="pay-button pay-cash" onclick="addPayment('Cash')">Cash</button>
-        <button class="pay-button pay-card" onclick="addPayment('CB')">CB</button>
-        <button class="pay-button" onclick="finalizePayment()">Valider</button>
+        {% for method_id, method_name in payment_methods.items() %}
+        <button class="pay-button" onclick="addPayment({{method_id}},'{{method_name}}')">{{method_name}}</button>
+        {% endfor %}
+        <button class="validate-button" onclick="finalizePayment()">Valider</button>
       </div>
     </div>
 
   </div>
 
-  <div class="tab" id="summary">
+  <div class="tab" id="summary" style="display: block">
   </div>
 
   <div class="tab" id="history">
@@ -326,6 +349,7 @@
     let discount = 0;
     let paid = 0;
     let paymentMethod = '';
+    let paymentMethodId = 0;
     
 
     function formatCents(cents) {
@@ -412,9 +436,10 @@
       }
     }
 
-    function addPayment(method) {
+    function addPayment(method_id, method) {
         let total = computeTotal();
         paid = total - discount;
+        paymentMethodId = method_id;
         paymentMethod = method;
         updateTotal();
     }
@@ -447,7 +472,7 @@
 
         const order = {
             timestamp: new Date().toISOString(),
-            method: paymentMethod,
+            method_id: paymentMethodId,
             items: orderItems,
             total
         };

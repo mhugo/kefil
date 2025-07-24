@@ -7,82 +7,6 @@ app = Flask(__name__)
 DATABASE = "orders.db"
 
 
-def init_db():
-    with sqlite3.connect(DATABASE) as conn:
-        cursor = conn.cursor()
-        cursor.execute(
-            """
-            CREATE TABLE IF NOT EXISTS orders (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                id_in_day INTEGER,
-                timestamp TEXT NOT NULL,
-                method TEXT NOT NULL,
-                total INTEGER NOT NULL
-            )
-        """
-        )
-
-        cursor.execute(
-            """
-        CREATE TABLE IF NOT EXISTS items (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            name TEXT NOT NULL,
-            price INTEGER NOT NULL
-        )
-        """
-        )
-
-        cursor.execute(
-            """
-        CREATE TABLE IF NOT EXISTS order_items (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            order_id INTEGER NOT NULL,
-            item_id INTEGER NOT NULL,
-            quantity INTEGER NOT NULL,
-            FOREIGN KEY(order_id) REFERENCES orders(id),
-            FOREIGN KEY(item_id) REFERENCES items(id)
-        )
-        """
-        )
-        cursor.execute("DELETE FROM order_items")
-        cursor.execute("DELETE FROM orders")
-        cursor.execute("DELETE FROM items")
-        cursor.execute("INSERT INTO items (name, price) VALUES (?, ?)", ("Apple", 125))
-        cursor.execute("INSERT INTO items (name, price) VALUES (?, ?)", ("Banana", 90))
-        cursor.execute("INSERT INTO items (name, price) VALUES (?, ?)", ("Orange", 150))
-        cursor.execute("INSERT INTO items (name, price) VALUES (?, ?)", ("Mango", 275))
-        cursor.execute("INSERT INTO items (name, price) VALUES (?, ?)", ("Grapes", 300))
-        cursor.execute(
-            "INSERT INTO items (name, price) VALUES (?, ?)", ("Watermelon", 450)
-        )
-        # Insert sample orders
-        cursor.execute(
-            "INSERT INTO orders (id_in_day, timestamp, method, total) VALUES (?, ?, ?, ?)",
-            (1, "2025-07-20T12:00:00", "Cash", 365),
-        )
-        order_id_1 = cursor.lastrowid
-        cursor.execute(
-            "INSERT INTO order_items (order_id, item_id, quantity) VALUES (?, ?, ?)",
-            (order_id_1, 1, 1),
-        )  # Apple
-        cursor.execute(
-            "INSERT INTO order_items (order_id, item_id, quantity) VALUES (?, ?, ?)",
-            (order_id_1, 2, 2),
-        )  # Banana
-
-        cursor.execute(
-            "INSERT INTO orders (id_in_day, timestamp, method, total) VALUES (?, ?, ?, ?)",
-            (2, "2025-07-20T13:00:00", "Card", 450),
-        )
-        order_id_2 = cursor.lastrowid
-        cursor.execute(
-            "INSERT INTO order_items (order_id, item_id, quantity) VALUES (?, ?, ?)",
-            (order_id_2, 3, 3),
-        )  # Orange
-
-        conn.commit()
-
-
 @app.route("/")
 def serve_index():
     with open("html/index.html", "r") as file:
@@ -92,16 +16,26 @@ def serve_index():
         cursor = conn.cursor()
         cursor.execute("SELECT id, name, price FROM items")
         items = cursor.fetchall()
+        cursor.execute("SELECT id, name FROM payment_methods")
+        payment_methods = cursor.fetchall()
 
     items = [{"id": id, "label": name, "price": price} for id, name, price in items]
-    return render_template_string(html_template, items_list=items)
+    payment_methods = {id: name for id, name in payment_methods}
+    return render_template_string(
+        html_template, items_list=items, payment_methods=payment_methods
+    )
 
 
 @app.route("/orders", methods=["GET"])
 def list_orders():
     with sqlite3.connect(DATABASE) as conn:
         cursor = conn.cursor()
-        cursor.execute("SELECT * FROM orders order by id desc")
+        cursor.execute(
+            """
+            select o.id, timestamp, p.name, total from orders o, payment_methods p
+            where p.id = o.method_id order by o.id desc
+            """
+        )
         orders = cursor.fetchall()
 
         order_list = []
@@ -111,7 +45,7 @@ def list_orders():
                 """
                 SELECT items.name, items.price, order_items.quantity 
                 FROM order_items 
-                JOIN items ON order_items.item_id = items.id 
+                JOIN items ON order_items.item_id = items.id
                 WHERE order_items.order_id = ?
             """,
                 (order_id,),
@@ -145,8 +79,8 @@ def add_order():
         )
         last_id = cursor.fetchone()[0] or 0
         cursor.execute(
-            "INSERT INTO orders (id_in_day, timestamp, method, total) VALUES (?, ?, ?, ?)",
-            (last_id + 1, timestamp, order_data["method"], order_data["total"]),
+            "INSERT INTO orders (id_in_day, timestamp, method_id, total) VALUES (?, ?, ?, ?)",
+            (last_id + 1, timestamp, order_data["method_id"], order_data["total"]),
         )
         order_id = cursor.lastrowid
 
@@ -171,19 +105,71 @@ def get_summary():
         )
         n_orders, total, last_id = cursor.fetchone()
 
-    if "application/json" in request.headers.get("accept", ""):
-        return jsonify(
-            {"n_orders": n_orders or 0, "total": total or 0, "last_id": last_id or 0}
+        cursor.execute(
+            "select sum(oi.quantity) from orders o, order_items oi where oi.order_id = o.id and date(o.timestamp) = ?",
+            (date,),
         )
+        n_items = cursor.fetchone()[0]
+
+        # count by category
+        cursor.execute(
+            """
+            select
+              c.name, sum(oi.quantity)
+            from
+              order_items oi,
+              orders o,
+              items i,
+              categories c
+            where
+              oi.order_id = o.id
+              and oi.item_id = i.id
+              and i.category_id = c.id
+              and date(o.timestamp) = ?
+            group by
+              i.category_id
+            """,
+            (date,),
+        )
+
+        count_per_category = {r[0]: r[1] for r in cursor.fetchall()}
+
+        # Count per item
+        cursor.execute(
+            """
+            select
+              i.name,
+              sum(oi.quantity)
+            from
+              order_items oi,
+              orders o,
+              items i
+            where
+              oi.order_id = o.id
+              and oi.item_id = i.id
+              and date(o.timestamp) = ?
+            group by i.id
+            """,
+            (date,),
+        )
+        count_per_item = {r[0]: r[1] for r in cursor.fetchall()}
+
+    summary = {
+        "n_orders": n_orders or 0,
+        "n_items": n_items or 0,
+        "total": total or 0,
+        "last_id": last_id or 0,
+        "count_per_category": count_per_category or 0,
+        "count_per_item": count_per_item or 0,
+    }
+
+    if "application/json" in request.headers.get("accept", ""):
+        return jsonify(summary)
     else:
         with open("html/summary.html", "r") as file:
             html_template = file.read()
-
-            return render_template_string(
-                html_template, n_orders=n_orders or 0, total=total or 0
-            )
+            return render_template_string(html_template, summary=summary)
 
 
 if __name__ == "__main__":
-    init_db()
     app.run(debug=True)
