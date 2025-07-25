@@ -91,7 +91,18 @@
       color: black;
     }
 
-    .pay-button:active {
+    .discount-button { /* New style for discount button */
+      padding: 1rem 2rem;
+      font-size: 1.1rem;
+      font-weight: bold;
+      border: none;
+      border-radius: 0.5rem;
+      cursor: pointer;
+      background-color: #ffc107; /* Example color for discount */
+      color: black;
+    }
+
+    .pay-button:active, .discount-button:active { /* Added discount button to active state */
       transform: scale(0.97);
     }
 
@@ -241,7 +252,68 @@ table {
     }
     h1, h2 {
       color: #343a40;
-    }</style>
+    }
+
+    /* Modal Styles */
+    .modal {
+        display: none; /* Hidden by default */
+        position: fixed; /* Stay in place */
+        z-index: 100; /* Sit on top */
+        left: 0;
+        top: 0;
+        width: 100%; /* Full width */
+        height: 100%; /* Full height */
+        overflow: auto; /* Enable scroll if needed */
+        background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+        justify-content: center;
+        align-items: center;
+    }
+
+    .modal-content {
+        background-color: #fefefe;
+        margin: auto;
+        padding: 20px;
+        border: 1px solid #888;
+        width: 80%;
+        max-width: 400px;
+        border-radius: 0.5rem;
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .modal-content input[type="number"] {
+        width: 100%;
+        padding: 0.75rem;
+        border: 1px solid #ccc;
+        border-radius: 0.4rem;
+        font-size: 1rem;
+    }
+
+    .modal-buttons {
+        display: flex;
+        justify-content: flex-end;
+        gap: 0.5rem;
+    }
+
+    .modal-buttons button {
+        padding: 0.75rem 1.5rem;
+        border: none;
+        border-radius: 0.4rem;
+        cursor: pointer;
+        font-size: 1rem;
+    }
+
+    .modal-buttons .cancel-button {
+        background-color: #6c757d;
+        color: white;
+    }
+
+    .modal-buttons .apply-button {
+        background-color: #28a745;
+        color: white;
+    }
+  </style>
 </head>
 <body>
   <div class="tabs">
@@ -269,6 +341,7 @@ table {
         {% for method_id, method_name in payment_methods.items() %}
         <button class="pay-button" onclick="addPayment({{method_id}},'{{method_name}}')">{{method_name}}</button>
         {% endfor %}
+        <button class="discount-button" onclick="openDiscountModal()">Remise</button> {# New Discount Button #}
         <button class="validate-button" onclick="finalizePayment()">Valider</button>
       </div>
     </div>
@@ -281,6 +354,19 @@ table {
   <div class="tab" id="history">
     <h1>Historique des commandes</h1>
     <ul id="orderList"></ul>
+  </div>
+
+  {# Discount Modal #}
+  <div id="discountModal" class="modal">
+    <div class="modal-content">
+      <h2>Appliquer une remise</h2>
+      <label for="discountAmount">Montant de la remise (€):</label>
+      <input type="number" id="discountAmount" placeholder="0.00" step="0.01" min="0">
+      <div class="modal-buttons">
+        <button class="cancel-button" onclick="closeDiscountModal()">Annuler</button>
+        <button class="apply-button" onclick="applyDiscount()">Appliquer</button>
+      </div>
+    </div>
   </div>
 
   <script>
@@ -346,8 +432,8 @@ table {
 
     const basket = {};
 
-    let discount = 0;
-    let paid = 0;
+    let discount = 0; // Stored in cents
+    let paid = 0; // Stored in cents
     let paymentMethod = '';
     let paymentMethodId = 0;
     
@@ -399,7 +485,7 @@ table {
         textTotal.textContent = `Total: ${formatCents(total)}`;
 
         const textDiscount = document.getElementById('textDiscount');
-        textDiscount.textContent = (discount > 0) ? `Remise: ${formatCents(discount)}` : '';
+        textDiscount.textContent = (discount > 0) ? `Remise: -${formatCents(discount)}` : ''; // Display discount as negative
 
         const textRemaining = document.getElementById('textRemaining');
         let remaining = total - discount - paid;
@@ -438,11 +524,50 @@ table {
 
     function addPayment(method_id, method) {
         let total = computeTotal();
-        paid = total - discount;
+        paid = total - discount; // Payment covers total minus discount
         paymentMethodId = method_id;
         paymentMethod = method;
         updateTotal();
     }
+
+    function openDiscountModal() {
+        document.getElementById('discountModal').style.display = 'flex';
+        // Pre-fill with current discount if any
+        document.getElementById('discountAmount').value = (discount / 100).toFixed(2);
+    }
+
+    function closeDiscountModal() {
+        document.getElementById('discountModal').style.display = 'none';
+    }
+
+    function applyDiscount() {
+        const discountInput = document.getElementById('discountAmount');
+        let enteredDiscount = parseFloat(discountInput.value);
+
+        if (isNaN(enteredDiscount) || enteredDiscount < 0) {
+            alert("Veuillez saisir un montant de remise valide.");
+            return;
+        }
+
+        // Convert euros to cents for internal calculation
+        discount = Math.round(enteredDiscount * 100);
+
+        // Ensure discount doesn't exceed total
+        let total = computeTotal();
+        if (discount > total) {
+            discount = total;
+            alert("La remise ne peut pas dépasser le total de la commande. La remise a été ajustée au total.");
+        }
+        
+        // Reset paid amount if discount changes, as it might affect remaining
+        paid = 0; 
+        paymentMethod = '';
+        paymentMethodId = 0;
+
+        updateTotal();
+        closeDiscountModal();
+    }
+
 
     function finalizePayment() {
         let total_basket = computeTotal();
@@ -450,8 +575,9 @@ table {
             window.alert("Panier vide !");
             return;
         }
-        if (total_basket-discount > paid) {
-            window.alert("Mode de paiement non renseigné !");
+        let remainingToPay = total_basket - discount - paid;
+        if (remainingToPay > 0) {
+            window.alert("Mode de paiement non renseigné ou paiement insuffisant !");
             return;
         }
         if (!window.confirm("La commande a t-elle bien été payée ?")) {
@@ -474,7 +600,7 @@ table {
             timestamp: new Date().toISOString(),
             method_id: paymentMethodId,
             items: orderItems,
-            total
+            total: total - discount // Store the total after discount
         };
 
         console.log("Saving order:", order);
