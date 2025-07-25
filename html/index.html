@@ -91,18 +91,29 @@
       color: black;
     }
 
-    .discount-button { /* New style for discount button */
+    .discount-button {
       padding: 1rem 2rem;
       font-size: 1.1rem;
       font-weight: bold;
       border: none;
       border-radius: 0.5rem;
       cursor: pointer;
-      background-color: #ffc107; /* Example color for discount */
+      background-color: #ffc107;
       color: black;
     }
 
-    .pay-button:active, .discount-button:active { /* Added discount button to active state */
+    .coupon-button { /* New style for coupon button */
+        padding: 1rem 2rem;
+        font-size: 1.1rem;
+        font-weight: bold;
+        border: none;
+        border-radius: 0.5rem;
+        cursor: pointer;
+        background-color: #28a745; /* Example color for coupon */
+        color: white;
+    }
+
+    .pay-button:active, .discount-button:active, .coupon-button:active {
       transform: scale(0.97);
     }
 
@@ -282,7 +293,7 @@ table {
         gap: 1rem;
     }
 
-    .modal-content input[type="number"] {
+    .modal-content input[type="number"], .modal-content input[type="text"] {
         width: 100%;
         padding: 0.75rem;
         border: 1px solid #ccc;
@@ -313,6 +324,14 @@ table {
         background-color: #28a745;
         color: white;
     }
+    .modal-buttons .check-button { /* New style for check button in coupon modal */
+        background-color: #007bff;
+        color: white;
+    }
+    .modal-buttons .consume-button { /* New style for consume button in coupon modal */
+        background-color: #17a2b8;
+        color: white;
+    }
   </style>
 </head>
 <body>
@@ -341,7 +360,8 @@ table {
         {% for method_id, method_name in payment_methods.items() %}
         <button class="pay-button" onclick="addPayment({{method_id}},'{{method_name}}')">{{method_name}}</button>
         {% endfor %}
-        <button class="discount-button" onclick="openDiscountModal()">Remise</button> {# New Discount Button #}
+        <button class="discount-button" onclick="openDiscountModal()">Remise</button>
+        <button class="coupon-button" onclick="openCouponModal()">Coupon</button> {# New Coupon Button #}
         <button class="validate-button" onclick="finalizePayment()">Valider</button>
       </div>
     </div>
@@ -365,6 +385,21 @@ table {
       <div class="modal-buttons">
         <button class="cancel-button" onclick="closeDiscountModal()">Annuler</button>
         <button class="apply-button" onclick="applyDiscount()">Appliquer</button>
+      </div>
+    </div>
+  </div>
+
+  {# Coupon Modal #}
+  <div id="couponModal" class="modal">
+    <div class="modal-content">
+      <h2>Appliquer un coupon</h2>
+      <label for="couponIdInput">Identifiant du coupon (5 caractères):</label>
+      <input type="text" id="couponIdInput" placeholder="XXXXX" maxlength="5" pattern="[a-zA-Z0-9]{5}">
+      <p id="couponStatusText"></p>
+      <div class="modal-buttons">
+        <button class="cancel-button" onclick="closeCouponModal()">Fermer</button>
+        <button class="check-button" onclick="checkCoupon()">Vérifier</button>
+        <button class="consume-button" id="consumeCouponButton" disabled onclick="consumeCoupon()">Consommer</button>
       </div>
     </div>
   </div>
@@ -436,7 +471,7 @@ table {
     let paid = 0; // Stored in cents
     let paymentMethod = '';
     let paymentMethodId = 0;
-    
+    let currentCouponId = ''; // To store the coupon ID if successfully checked
 
     function formatCents(cents) {
       return `${(cents / 100).toFixed(2)} €`;
@@ -485,7 +520,7 @@ table {
         textTotal.textContent = `Total: ${formatCents(total)}`;
 
         const textDiscount = document.getElementById('textDiscount');
-        textDiscount.textContent = (discount > 0) ? `Remise: -${formatCents(discount)}` : ''; // Display discount as negative
+        textDiscount.textContent = (discount > 0) ? `Remise: -${formatCents(discount)}` : '';
 
         const textRemaining = document.getElementById('textRemaining');
         let remaining = total - discount - paid;
@@ -524,7 +559,7 @@ table {
 
     function addPayment(method_id, method) {
         let total = computeTotal();
-        paid = total - discount; // Payment covers total minus discount
+        paid = total - discount;
         paymentMethodId = method_id;
         paymentMethod = method;
         updateTotal();
@@ -532,7 +567,6 @@ table {
 
     function openDiscountModal() {
         document.getElementById('discountModal').style.display = 'flex';
-        // Pre-fill with current discount if any
         document.getElementById('discountAmount').value = (discount / 100).toFixed(2);
     }
 
@@ -549,23 +583,115 @@ table {
             return;
         }
 
-        // Convert euros to cents for internal calculation
         discount = Math.round(enteredDiscount * 100);
 
-        // Ensure discount doesn't exceed total
         let total = computeTotal();
         if (discount > total) {
             discount = total;
             alert("La remise ne peut pas dépasser le total de la commande. La remise a été ajustée au total.");
         }
         
-        // Reset paid amount if discount changes, as it might affect remaining
         paid = 0; 
         paymentMethod = '';
         paymentMethodId = 0;
 
         updateTotal();
         closeDiscountModal();
+    }
+
+    // Coupon Modal Functions
+    function openCouponModal() {
+        document.getElementById('couponModal').style.display = 'flex';
+        document.getElementById('couponIdInput').value = '';
+        document.getElementById('couponStatusText').textContent = '';
+        document.getElementById('consumeCouponButton').disabled = true;
+        currentCouponId = ''; // Reset current coupon ID
+    }
+
+    function closeCouponModal() {
+        document.getElementById('couponModal').style.display = 'none';
+    }
+
+    async function checkCoupon() {
+        const couponIdInput = document.getElementById('couponIdInput');
+        const couponStatusText = document.getElementById('couponStatusText');
+        const consumeCouponButton = document.getElementById('consumeCouponButton');
+        const couponId = couponIdInput.value.trim();
+
+        currentCouponId = ''; // Reset current coupon ID
+
+        if (couponId.length !== 5 || !/^[a-zA-Z0-9]{5}$/.test(couponId)) {
+            couponStatusText.textContent = "L'identifiant du coupon doit être composé de 5 caractères alphanumériques.";
+            consumeCouponButton.disabled = true;
+            return;
+        }
+
+        try {
+            const response = await fetch(`/voucher?id=${couponId}`);
+            if (response.ok) {
+                const coupon = await response.json();
+                couponStatusText.textContent = `Coupon trouvé: "${coupon.description}". `;
+                if (coupon.is_consumed) {
+                    couponStatusText.textContent += `Déjà consommé le ${new Date(coupon.consumption_ts).toLocaleString()}.`;
+                    consumeCouponButton.disabled = true;
+                } else {
+                    couponStatusText.textContent += `Non consommé.`;
+                    consumeCouponButton.disabled = false;
+                    currentCouponId = couponId; // Store the valid coupon ID
+                }
+            } else if (response.status === 400) {
+                couponStatusText.textContent = "Coupon non trouvé.";
+                consumeCouponButton.disabled = true;
+            } else {
+                couponStatusText.textContent = "Erreur lors de la vérification du coupon.";
+                consumeCouponButton.disabled = true;
+            }
+        } catch (error) {
+            console.error("Error checking coupon:", error);
+            couponStatusText.textContent = "Erreur de connexion lors de la vérification du coupon.";
+            consumeCouponButton.disabled = true;
+        }
+    }
+
+    async function consumeCoupon() {
+        const couponStatusText = document.getElementById('couponStatusText');
+        const consumeCouponButton = document.getElementById('consumeCouponButton');
+
+        if (!currentCouponId) {
+            couponStatusText.textContent = "Veuillez vérifier un coupon valide avant de le consommer.";
+            return;
+        }
+
+        if (!window.confirm(`Confirmer la consommation du coupon "${currentCouponId}" ?`)) {
+            return;
+        }
+
+        try {
+            const response = await fetch("/voucher", {
+                method: "POST",
+                headers: {
+                    'Content-Type': 'application/json; charset=utf-8'
+                },
+                body: JSON.stringify({ id: currentCouponId })
+            });
+
+            if (response.ok) {
+                const coupon = await response.json(); // API returns updated coupon state on POST
+                couponStatusText.textContent = `Coupon "${coupon.id}" consommé avec succès le ${new Date(coupon.consumption_ts).toLocaleString()}.`;
+                consumeCouponButton.disabled = true;
+                currentCouponId = ''; // Clear coupon after consumption
+                // If coupon applied a discount, you would update 'discount' here.
+                // For now, it only marks it as consumed as per the prompt.
+                updateTotal(); // To refresh if any future logic depends on coupon state
+            } else {
+                couponStatusText.textContent = "Erreur lors de la consommation du coupon.";
+                // Potentially re-check coupon state
+                checkCoupon(); 
+            }
+        } catch (error) {
+            console.error("Error consuming coupon:", error);
+            couponStatusText.textContent = "Erreur de connexion lors de la consommation du coupon.";
+        }
     }
 
 
@@ -600,7 +726,7 @@ table {
             timestamp: new Date().toISOString(),
             method_id: paymentMethodId,
             items: orderItems,
-            total: total - discount // Store the total after discount
+            total: total - discount
         };
 
         console.log("Saving order:", order);

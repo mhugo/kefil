@@ -37,3 +37,11 @@ CREATE TABLE IF NOT EXISTS order_items (
     FOREIGN KEY(order_id) REFERENCES orders(id),
     FOREIGN KEY(item_id) REFERENCES items(id)
 );
+
+create table if not exists vouchers (
+       id varchar(5) primary key,
+       description text,
+       origin text,
+       is_consumed boolean not null,
+       consumption_timestamp text
+);

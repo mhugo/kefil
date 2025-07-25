@@ -171,5 +171,51 @@ def get_summary():
             return render_template_string(html_template, summary=summary)
 
 
+@app.route("/voucher", methods=["GET", "POST"])
+def get_voucher():
+    if request.method == "GET":
+        id = (request.args.get("id", "")).upper()
+    elif request.method == "POST":
+        id = request.get_json().get("id", "").upper()
+
+    with sqlite3.connect(DATABASE) as conn:
+        cursor = conn.cursor()
+        cursor.execute(
+            "select id, description, origin, is_consumed, consumption_timestamp from vouchers where id = ?",
+            (id,),
+        )
+        row = cursor.fetchone()
+        if row is not None:
+            id, description, origin, is_consumed, consumption_ts = row
+            state = {
+                "id": id,
+                "description": description,
+                "origin": origin,
+                "is_consumed": bool(is_consumed),
+                "consumption_ts": consumption_ts,
+            }
+            if request.method == "GET":
+                return jsonify(state)
+            elif request.method == "POST":
+                if not is_consumed:
+                    state["is_consumed"] = True
+                    cursor.execute(
+                        """
+                      update vouchers
+                      set
+                        is_consumed=true,
+                        consumption_timestamp=datetime('now','localtime')
+                      where id=?
+                      returning consumption_timestamp
+                    """,
+                        (id,),
+                    )
+                    state["consumption_ts"] = cursor.fetchone()[0]
+                return jsonify(state)
+
+        else:
+            return "Voucher not found", 400
+
+
 if __name__ == "__main__":
     app.run(debug=True)

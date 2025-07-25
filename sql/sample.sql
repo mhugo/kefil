@@ -20,5 +20,11 @@ insert into order_items (order_id, item_id, quantity)
 insert into order_items (order_id, item_id, quantity)
   select 3, (select id from items where name='Végé'), 1;
 
+delete from vouchers;
+insert into vouchers (id, description, is_consumed)
+  values ('ABC12', 'Une crêpe gratuite', false);
+insert into vouchers (id, description, is_consumed)
+  values ('XYZ34', 'Une crêpe gratuite', false);
+
 
 
