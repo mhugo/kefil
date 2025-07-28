@@ -64,7 +64,7 @@
 
   <script>
     function init_tab_summary() {
-        let currentDate = new Date().toJSON().slice(0, 10);
+        let currentDate = new URLSearchParams(document.location.search).get("date") || new Date().toJSON().slice(0, 10);
       fetch('/summary?date=' + currentDate)
             .then(response => response.text())
             .then(summaryText => {

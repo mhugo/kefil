@@ -1,3 +1,4 @@
+import datetime
 from flask import Flask, request, jsonify, render_template_string, send_from_directory
 import sqlite3
 import json
@@ -181,9 +182,22 @@ def get_summary():
     if "application/json" in request.headers.get("accept", ""):
         return jsonify(summary)
     else:
+        print("date", date)
+        previous_date = (
+            datetime.date.fromisoformat(date) - datetime.timedelta(days=1)
+        ).isoformat()
+        next_date = (
+            datetime.date.fromisoformat(date) + datetime.timedelta(days=1)
+        ).isoformat()
         with open("html/summary.parts.html", "r") as file:
             html_template = file.read()
-            return render_template_string(html_template, summary=summary)
+            return render_template_string(
+                html_template,
+                summary=summary,
+                current_date=date,
+                previous_date=previous_date,
+                next_date=next_date,
+            )
 
 
 @app.route("/voucher", methods=["GET", "POST"])
