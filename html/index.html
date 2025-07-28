@@ -3,69 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <link rel="stylesheet" href="common.css">
   <style>
-    /* Variables de couleurs pour la cohérence */
-    :root {
-      --primary-color: #007bff; /* Bleu vif pour les éléments principaux */
-      --primary-dark-color: #0056b3; /* Bleu plus foncé pour les états actifs */
-      --secondary-color: #6c757d; /* Gris pour les éléments secondaires/neutres */
-      --accent-color: #28a745; /* Vert pour les actions positives/succès */
-      --warning-color: #ffc107; /* Jaune pour les avertissements/remises */
-      --danger-color: #dc3545; /* Rouge pour les actions négatives/suppressions */
-      --info-color: #17a2b8; /* Cyan pour les informations/paiements */
-      --text-color-light: #ffffff; /* Texte blanc sur fond sombre */
-      --text-color-dark: #343a40; /* Texte foncé sur fond clair */
-      --background-light: #f8f9fa; /* Fond clair */
-      --background-dark: #343a40; /* Fond foncé pour le pied de page */
-      --border-color: #dee2e6; /* Couleur de bordure générale */
-    }
-
-    html, body {
-      margin: 0;
-      height: 100%;
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; /* Police moderne et lisible */
-      background-color: var(--background-light);
-      color: var(--text-color-dark);
-      display: flex; /* Utilise flexbox pour la mise en page principale */
-      flex-direction: column; /* Empile les éléments verticalement */
-    }
-
-    /* Conteneur principal des onglets (qui contient main, summary, history) */
-    /* Ancien .tab active, mais appliqué directement au conteneur des onglets */
-    .tab-container {
-        flex-grow: 1; /* Permet au conteneur de prendre l'espace restant */
-        display: flex; /* Active Flexbox pour les onglets */
-        overflow: hidden; /* Empêche le défilement du conteneur principal des onglets */
-    }
-
-    .tab {
-        display: none;
-        width: 100%; /* Les onglets doivent prendre 100% de la largeur de .tab-container */
-        height: 100%; /* Les onglets doivent prendre 100% de la hauteur de .tab-container */
-    }
-
-    .tab.active {
-        display: flex;
-        /* Ici, pour l'onglet 'main', nous voulons que ses enfants (basket et content) soient côte à côte */
-        /* Pour les autres onglets (summary, history), ils peuvent être affichés normalement */
-    }
-
-    /* Spécifique à l'onglet 'main' */
-    #main.active {
-        flex-direction: row; /* Aligne le panier et le contenu horizontalement */
-        flex-wrap: nowrap; /* Empêche le retour à la ligne des colonnes du main tab */
-    }
-
-    .tabs {
-        display: flex;
-        height: 5vh;
-        justify-content: center;
-        align-items: center; /* Centrer verticalement les boutons d'onglet */
-        background-color: var(--background-dark); /* Barre d'onglet sombre */
-        box-shadow: 0 2px 5px rgba(0,0,0,0.2); /* Ombre pour la séparation */
-        flex-shrink: 0; /* Empêche les onglets de rétrécir */
-    }
-
     .basket {
         width: 35%; /* Garde la largeur du panier */
         height: 100%; /* Occupe toute la hauteur disponible dans le flex parent (#main) */
@@ -291,7 +230,8 @@
       border-radius: 0.6rem; /* Rayon de bordure pour les onglets */
       font-size: 1.1rem; /* Taille de police légèrement plus grande */
       font-weight: bold;
-      transition: background-color 0.2s ease, transform 0.1s ease;
+    transition: background-color 0.2s ease, transform 0.1s ease;
+    text-decoration: none;
     }
 
     .tab-button.active {
@@ -499,9 +439,9 @@
 </head>
 <body>
   <div class="tabs">
-    <button class="tab-button active" onclick="showTab('main')">Commande</button>
-    <button class="tab-button" onclick="showTab('summary')">Résumé</button>
-    <button class="tab-button" onclick="showTab('history')">Historique</button>
+    <button class="tab-button active">Commande</button>
+    <a class="tab-button" href="/html_summary">Résumé</a>
+    <a class="tab-button" href="/html_history">Historique</a>
   </div>
 
   <div class="tab-container"> {# Nouveau conteneur pour les onglets #}
@@ -520,14 +460,6 @@
       </div>
     </div>
 
-    <div class="tab" id="summary">
-      <h1>Résumé des ventes journalières</h1>
-    </div>
-
-    <div class="tab" id="history">
-      <h1>Historique des commandes</h1>
-      <ul id="orderList"></ul>
-    </div>
   </div> {# Fin du nouveau conteneur pour les onglets #}
 
   <div class="footer">
@@ -570,22 +502,6 @@
   </div>
 
   <script>
-    function showTab(tabId) {
-      document.querySelectorAll('.tab').forEach(tab => {
-        tab.classList.remove('active');
-      });
-      document.querySelectorAll('.tab-button').forEach(button => {
-        button.classList.remove('active');
-      });
-      document.getElementById(tabId).classList.add('active');
-      document.querySelector(`.tab-button[onclick="showTab('${tabId}')"]`).classList.add('active');
-
-        const init_function_name = "init_tab_" + tabId;
-        if (typeof window[init_function_name] == "function") {
-            window[init_function_name]();
-        }
-    }
-
     function init_tab_main() {
         let currentDate = new Date().toJSON().slice(0, 10);
         const request = new Request(
@@ -600,29 +516,6 @@
             .then(response => response.json())
             .then(summary => {
                 document.getElementById('next_id').innerHTML = `<b>Commande #${summary.last_id + 1}</b>`;
-            });
-    }
-    function init_tab_history() {
-      fetch('/orders')
-        .then(response => response.json())
-        .then(orders => {
-          const orderList = document.getElementById('orderList');
-          orderList.innerHTML = '';
-          orders.forEach(order => {
-            const li = document.createElement('li');
-            li.textContent = `Commande #${order.id} - ${order.timestamp} - ${order.method} - Total: ${formatCents(order.total)}`;
-            orderList.appendChild(li);
-          });
-        });
-    }
-
-    function init_tab_summary() {
-        let currentDate = new Date().toJSON().slice(0, 10);
-      fetch('/summary?date=' + currentDate)
-            .then(response => response.text())
-            .then(summaryText => {
-                const summary = document.getElementById("summary");
-                summary.innerHTML = summaryText;
             });
     }
     
@@ -929,7 +822,7 @@
         grid.appendChild(btn);
     });
 
-    showTab('main');
+      init_tab_main();
   </script>
 </body>
 </html>

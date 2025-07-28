@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify, render_template_string
+from flask import Flask, request, jsonify, render_template_string, send_from_directory
 import sqlite3
 import json
 
@@ -24,6 +24,21 @@ def serve_index():
     return render_template_string(
         html_template, items_list=items, payment_methods=payment_methods
     )
+
+
+@app.route("/html_summary")
+def serve_summary():
+    return send_from_directory("html", "summary.html")
+
+
+@app.route("/html_history")
+def serve_history():
+    return send_from_directory("html", "history.html")
+
+
+@app.route("/common.css")
+def serve_css():
+    return send_from_directory("html", "common.css")
 
 
 @app.route("/orders", methods=["GET"])
@@ -159,14 +174,14 @@ def get_summary():
         "n_items": n_items or 0,
         "total": total or 0,
         "last_id": last_id or 0,
-        "count_per_category": count_per_category or 0,
-        "count_per_item": count_per_item or 0,
+        "count_per_category": count_per_category or {},
+        "count_per_item": count_per_item or {},
     }
 
     if "application/json" in request.headers.get("accept", ""):
         return jsonify(summary)
     else:
-        with open("html/summary.html", "r") as file:
+        with open("html/summary.parts.html", "r") as file:
             html_template = file.read()
             return render_template_string(html_template, summary=summary)
 

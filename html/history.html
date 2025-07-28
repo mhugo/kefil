@@ -90,7 +90,7 @@
     }
 
     /* Styles pour la table de résumé et l'historique */
-    #summary {
+    #history {
       flex-direction: column;
       align-items: center; /* Centre horizontalement le contenu */
       padding: 1rem; /* Ajouter un peu de padding pour les bords */
@@ -98,7 +98,7 @@
       overflow-y: auto; /* Permet le défilement si le contenu dépasse */
     }
 
-    #summary table {
+    #history ul {
         margin-bottom: 1.5rem; /* Marge uniforme */
         width: 100%; /* Prend toute la largeur disponible dans le parent (avec padding) */
         max-width: 800px; /* Limite la largeur pour une meilleure lisibilité sur grand écran */
@@ -108,21 +108,10 @@
         border-collapse: collapse; /* Assure que les bordures de table sont correctes */
     }
 
-    #summary table th, #summary table td {
+    #history ul li {
       border: 1px solid var(--border-color);
       padding: 0.8rem 1rem; /* Plus de padding */
       font-size: 1.1rem; /* Taille de police des données */
-    }
-    #summary table th {
-      background-color: var(--background-dark);
-      color: var(--text-color-light);
-      text-align: left;
-      font-weight: bold;
-    }
-    #summary table td.number {
-      text-align: right;
-      font-weight: bold;
-      color: var(--primary-dark-color);
     }
     h1, h2 {
       color: var(--text-color-dark);
@@ -131,31 +120,60 @@
       text-align: center; /* Centrer les titres */
     }
 
+    #history ul {
+        list-style: none; /* Supprimer les puces de liste */
+        padding: 0;
+    }
+
+    #history ul li {
+        background-color: var(--text-color-light);
+        margin-bottom: 0.5rem;
+        border-radius: 0.5rem;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0.8rem 1rem;
+        border: 1px solid var(--border-color);
+    }
+    
+
   </style>
 </head>
 <body>
   <div class="tabs">
     <a class="tab-button" href="/">Commande</a>
-    <button class="tab-button active">Résumé</button>
-    <a class="tab-button" href="/html_history">Historique</a>
+    <a class="tab-button" href="/html_summary">Résumé</a>
+    <button class="tab-button active">Historique</button>
   </div>
 
   <div class="tab-container">
-    <div class="tab active" id="summary">
+    <div class="tab active" id="history">
+      <h1>Historique des commandes</h1>
+      <ul id="orderList"></ul>
     </div>
   </div>
 
   <script>
-    function init_tab_summary() {
-        let currentDate = new Date().toJSON().slice(0, 10);
-      fetch('/summary?date=' + currentDate)
-            .then(response => response.text())
-            .then(summaryText => {
-                const summary = document.getElementById("summary");
-                summary.innerHTML = summaryText;
-            });
+    function formatCents(cents) {
+      return `${(cents / 100).toFixed(2)} €`;
     }
-    init_tab_summary();
+
+    function init_tab_history() {
+      fetch('/orders')
+        .then(response => response.json())
+        .then(orders => {
+          const orderList = document.getElementById('orderList');
+          orderList.innerHTML = '';
+          orders.forEach(order => {
+            const li = document.createElement('li');
+            li.textContent = `Commande #${order.id} - ${order.timestamp} - ${order.method} - Total: ${formatCents(order.total)}`;
+            orderList.appendChild(li);
+          });
+        });
+    }
+    
+    init_tab_history();
   </script>
 </body>
 </html>
