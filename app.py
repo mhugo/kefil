@@ -41,19 +41,32 @@ def serve_summary():
     ).isoformat()
     with open("html/summary.html", "r") as file:
         html_template = file.read()
-        return render_template_string(
-            html_template,
-            summary=summary,
-            current_date=date,
-            previous_date=previous_date,
-            next_date=next_date,
-        )
-    return send_from_directory("html", "summary.html")
+    return render_template_string(
+        html_template,
+        summary=summary,
+        current_date=date,
+        previous_date=previous_date,
+        next_date=next_date,
+    )
 
 
 @app.route("/html_history")
 def serve_history():
-    return send_from_directory("html", "history.html")
+    date = request.args.get("date") or datetime.datetime.now().date().isoformat()
+    previous_date = (
+        datetime.date.fromisoformat(date) - datetime.timedelta(days=1)
+    ).isoformat()
+    next_date = (
+        datetime.date.fromisoformat(date) + datetime.timedelta(days=1)
+    ).isoformat()
+    with open("html/history.html", "r") as file:
+        html_template = file.read()
+    return render_template_string(
+        html_template,
+        current_date=date,
+        previous_date=previous_date,
+        next_date=next_date,
+    )
 
 
 @app.route("/common.css")
@@ -63,13 +76,16 @@ def serve_css():
 
 @app.route("/orders", methods=["GET"])
 def list_orders():
+    date = request.args["date"]
+    print("==== date", date)
     with sqlite3.connect(DATABASE) as conn:
         cursor = conn.cursor()
         cursor.execute(
             """
             select o.id, timestamp, p.name, total from orders o, payment_methods p
-            where p.id = o.method_id order by o.id desc
-            """
+            where p.id = o.method_id and date(timestamp) = ? order by o.id desc
+            """,
+            (date,),
         )
         orders = cursor.fetchall()
 
