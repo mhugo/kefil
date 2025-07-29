@@ -16,7 +16,7 @@ def serve_index():
     with sqlite3.connect(DATABASE) as conn:
         cursor = conn.cursor()
         cursor.execute(
-            "SELECT id, name, price, batch_quantity, grid_x, grid_y FROM items"
+            "SELECT id, name, price, batch_quantity, grid_x, grid_y, color FROM items"
         )
         items = cursor.fetchall()
         cursor.execute("SELECT id, name FROM payment_methods")
@@ -30,8 +30,10 @@ def serve_index():
             "batch_quantity": batch_quantity or 1,
             "grid_x": grid_x,
             "grid_y": grid_y,
+            "bg_color": color or "#fff",
+            "color": "#fff" if color else "#007bff",
         }
-        for id, name, price, batch_quantity, grid_x, grid_y in items
+        for id, name, price, batch_quantity, grid_x, grid_y, color in items
     ]
     payment_methods = {id: name for id, name in payment_methods}
     return render_template_string(

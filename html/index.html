@@ -142,7 +142,6 @@
       gap: 0.5rem 0.8rem; /* Espacement entre les lignes et colonnes */
       margin: 0;
       padding: 0;
-      flex-grow: 1; /* Permet à la liste de prendre l'espace disponible */
       overflow-y: auto; /* Permet le défilement si le contenu dépasse */
       margin-bottom: 1rem; /* Espace avant les totaux */
     }
@@ -550,8 +549,8 @@
           info2.className = 'basket-item2';
           
           // Le prix est maintenant directement dans info2
-          info1.textContent = `${item.label} - x${quantity * item.batch_quantity}`;
-          info2.innerHTML = `${formatCents(total)} `; /* Utilise innerHTML pour ajouter le bouton après */
+            info1.innerHTML = `<b>x${quantity * item.batch_quantity}</b>&nbsp;- ${item.label}`;
+          info2.innerHTML = `${formatCents(total)} `;
 
           const removeBtn = document.createElement('button');
           removeBtn.className = 'remove-button';
@@ -816,8 +815,8 @@
     const grid = document.getElementById('buttonGrid');
     config.items.forEach(item => {
         const btn = document.createElement('button');
-      btn.className = 'square-button';
-      btn.style=`grid-column: ${item.grid_x}; grid-row: ${item.grid_y};`;
+        btn.className = 'square-button';
+        btn.style=`grid-column: ${item.grid_x}; grid-row: ${item.grid_y}; background-color: ${item.bg_color}; color: ${item.color}; border-color: #343a40`;
         btn.textContent = item.label;
         btn.onclick = () => addToBasket(item);
         grid.appendChild(btn);
