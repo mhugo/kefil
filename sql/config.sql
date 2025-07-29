@@ -7,7 +7,7 @@ insert into items (name, preparation_label, category_id, price, grid_x, grid_y, 
 insert into items (name, preparation_label, category_id, price, grid_x, grid_y, color) values ('Complète végé', 'OLF', 1, 700, 2, 1, '#0056b3');
 insert into items (name, preparation_label, category_id, price, grid_x, grid_y, color) values ('Argoat', 'JF', 1, 600, 1, 2, '#28a745');
 insert into items (name, preparation_label, category_id, price, grid_x, grid_y, color) values ('Végé', 'LF ou OF ou OL', 1, 600, 2, 2, '#28a745');
-insert into items (name, preparation_label, category_id, price, grid_x, grid_y, color) values ('Simple', '1 ingrédient', 1, 500, 3, 2, '#28a745');
+insert into items (name, preparation_label, category_id, price, grid_x, grid_y, color) values ('1 ingrédient', '1 ingrédient', 1, 500, 3, 2, '#28a745');
 insert into items (name, preparation_label, category_id, price, grid_x, grid_y, color) values ('Confiture', 'K', 2, 400, 1, 3, '#ffc107');
 insert into items (name, preparation_label, category_id, price, grid_x, grid_y, color) values ('Chocolat', 'Ch', 2, 400, 2, 3, '#ffc107');
 insert into items (name, preparation_label, category_id, price, grid_x, grid_y, color) values ('Caramel', 'Ca', 2, 400, 3, 3, '#ffc107');
