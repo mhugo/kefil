@@ -13,6 +13,9 @@ insert into items (name, preparation_label, category_id, price) values ('Chocola
 insert into items (name, preparation_label, category_id, price) values ('Caramel', 'Ca', 2, 400);
 insert into items (name, preparation_label, category_id, price) values ('Beurre et/ou Sucre', 'S', 2, 300);
 
+insert into items (name, category_id, price, batch_quantity) values ('Crêpes blé noir sèches', 1, 50, 6);
+insert into items (name, category_id, price, batch_quantity) values ('Crêpes froment sèches', 2, 50, 6);
+
 delete from payment_methods;
 insert into payment_methods (id, name) values (1, 'Espèces');
 insert into payment_methods (id, name) values (2, 'CB');

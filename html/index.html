@@ -541,7 +541,7 @@
 
         for (const key in basket) {
             const { id, item, quantity } = basket[key];
-            const total = item.price * quantity;
+            const total = item.price * item.batch_quantity * quantity;
 
           const info1 = document.createElement('div');
           info1.className = 'basket-item1';
@@ -550,7 +550,7 @@
           info2.className = 'basket-item2';
           
           // Le prix est maintenant directement dans info2
-          info1.textContent = `${item.label} - x${quantity}`;
+          info1.textContent = `${item.label} - x${quantity * item.batch_quantity}`;
           info2.innerHTML = `${formatCents(total)} `; /* Utilise innerHTML pour ajouter le bouton après */
 
           const removeBtn = document.createElement('button');
@@ -568,7 +568,7 @@
         let total = 0;
         for (const key in basket) {
             const { id, item, quantity } = basket[key];
-            total += item.price * quantity;
+            total += item.price * item.batch_quantity * quantity;
         }
         return total;
     }
@@ -773,7 +773,7 @@
         
         for (const key in basket) {
             const { id, item, quantity } = basket[key];
-            const lineTotal = item.price * quantity;
+            const lineTotal = item.price * item.batch_quantity * quantity;
             orderItems.push({
                 id,
                 quantity

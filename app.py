@@ -15,12 +15,15 @@ def serve_index():
 
     with sqlite3.connect(DATABASE) as conn:
         cursor = conn.cursor()
-        cursor.execute("SELECT id, name, price FROM items")
+        cursor.execute("SELECT id, name, price, batch_quantity FROM items")
         items = cursor.fetchall()
         cursor.execute("SELECT id, name FROM payment_methods")
         payment_methods = cursor.fetchall()
 
-    items = [{"id": id, "label": name, "price": price} for id, name, price in items]
+    items = [
+        {"id": id, "label": name, "price": price, "batch_quantity": batch_quantity or 1}
+        for id, name, price, batch_quantity in items
+    ]
     payment_methods = {id: name for id, name in payment_methods}
     return render_template_string(
         html_template, items_list=items, payment_methods=payment_methods
@@ -77,7 +80,6 @@ def serve_css():
 @app.route("/orders", methods=["GET"])
 def list_orders():
     date = request.args["date"]
-    print("==== date", date)
     with sqlite3.connect(DATABASE) as conn:
         cursor = conn.cursor()
         cursor.execute(

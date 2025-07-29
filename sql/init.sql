@@ -7,6 +7,7 @@ CREATE TABLE IF NOT EXISTS items (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     name TEXT NOT NULL,
     preparation_label TEXT,
+    batch_quantity INTEGER,
     price INTEGER NOT NULL,
     category_id INTEGER NOT NULL,
     grid_x INTEGER,
