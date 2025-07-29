@@ -29,6 +29,25 @@ def serve_index():
 
 @app.route("/html_summary")
 def serve_summary():
+    date = request.args.get("date") or datetime.datetime.now().date().isoformat()
+
+    summary = fetch_summary(date)
+
+    previous_date = (
+        datetime.date.fromisoformat(date) - datetime.timedelta(days=1)
+    ).isoformat()
+    next_date = (
+        datetime.date.fromisoformat(date) + datetime.timedelta(days=1)
+    ).isoformat()
+    with open("html/summary.html", "r") as file:
+        html_template = file.read()
+        return render_template_string(
+            html_template,
+            summary=summary,
+            current_date=date,
+            previous_date=previous_date,
+            next_date=next_date,
+        )
     return send_from_directory("html", "summary.html")
 
 
@@ -109,10 +128,7 @@ def add_order():
         return jsonify({"id": cursor.lastrowid}), 201
 
 
-@app.route("/summary", methods=["GET"])
-def get_summary():
-    date = request.args["date"]
-
+def fetch_summary(date: str):
     with sqlite3.connect(DATABASE) as conn:
         cursor = conn.cursor()
         cursor.execute(
@@ -170,7 +186,7 @@ def get_summary():
         )
         count_per_item = {r[0]: r[1] for r in cursor.fetchall()}
 
-    summary = {
+    return {
         "n_orders": n_orders or 0,
         "n_items": n_items or 0,
         "total": total or 0,
@@ -179,25 +195,14 @@ def get_summary():
         "count_per_item": count_per_item or {},
     }
 
-    if "application/json" in request.headers.get("accept", ""):
-        return jsonify(summary)
-    else:
-        print("date", date)
-        previous_date = (
-            datetime.date.fromisoformat(date) - datetime.timedelta(days=1)
-        ).isoformat()
-        next_date = (
-            datetime.date.fromisoformat(date) + datetime.timedelta(days=1)
-        ).isoformat()
-        with open("html/summary.parts.html", "r") as file:
-            html_template = file.read()
-            return render_template_string(
-                html_template,
-                summary=summary,
-                current_date=date,
-                previous_date=previous_date,
-                next_date=next_date,
-            )
+
+@app.route("/summary", methods=["GET"])
+def get_summary():
+    date = request.args["date"]
+
+    summary = fetch_summary(date)
+
+    return jsonify(summary)
 
 
 @app.route("/voucher", methods=["GET", "POST"])
