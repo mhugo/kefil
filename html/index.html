@@ -102,9 +102,9 @@
 
     .grid {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); /* Boutons légèrement plus grands */
-      gap: 1.2rem; /* Espacement plus important */
-      padding: 0.5rem; /* Padding pour la grille */
+      grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+      gap: 1.2rem;
+      padding: 0.5rem;
     }
 
     .square-button {
@@ -116,7 +116,7 @@
       cursor: pointer;
       transition: background-color 0.2s, color 0.2s, transform 0.1s ease;
       border-radius: 0.8rem;
-      font-size: 1.3rem; /* Police plus grande */
+      font-size: 1.3rem;
       display: flex; /* Centrer le texte dans le bouton */
       justify-content: center;
       align-items: center;
@@ -816,7 +816,8 @@
     const grid = document.getElementById('buttonGrid');
     config.items.forEach(item => {
         const btn = document.createElement('button');
-        btn.className = 'square-button';
+      btn.className = 'square-button';
+      btn.style=`grid-column: ${item.grid_x}; grid-row: ${item.grid_y};`;
         btn.textContent = item.label;
         btn.onclick = () => addToBasket(item);
         grid.appendChild(btn);

@@ -15,14 +15,23 @@ def serve_index():
 
     with sqlite3.connect(DATABASE) as conn:
         cursor = conn.cursor()
-        cursor.execute("SELECT id, name, price, batch_quantity FROM items")
+        cursor.execute(
+            "SELECT id, name, price, batch_quantity, grid_x, grid_y FROM items"
+        )
         items = cursor.fetchall()
         cursor.execute("SELECT id, name FROM payment_methods")
         payment_methods = cursor.fetchall()
 
     items = [
-        {"id": id, "label": name, "price": price, "batch_quantity": batch_quantity or 1}
-        for id, name, price, batch_quantity in items
+        {
+            "id": id,
+            "label": name,
+            "price": price,
+            "batch_quantity": batch_quantity or 1,
+            "grid_x": grid_x,
+            "grid_y": grid_y,
+        }
+        for id, name, price, batch_quantity, grid_x, grid_y in items
     ]
     payment_methods = {id: name for id, name in payment_methods}
     return render_template_string(
