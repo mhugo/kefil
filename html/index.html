@@ -549,7 +549,7 @@
           info2.className = 'basket-item2';
           
           // Le prix est maintenant directement dans info2
-            info1.innerHTML = `<b>x${quantity * item.batch_quantity}</b>&nbsp;- ${item.label}`;
+            info1.innerHTML = `<b>${quantity * item.batch_quantity} x ${item.label}</b>`;
           info2.innerHTML = `${formatCents(total)} `;
 
           const removeBtn = document.createElement('button');
