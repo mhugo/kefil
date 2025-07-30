@@ -1,6 +1,5 @@
 import datetime
 from flask import Flask, request, jsonify, render_template_string, send_from_directory
-from flaskwebgui import FlaskUI
 import sqlite3
 import json
 
@@ -282,5 +281,4 @@ def get_voucher():
 
 
 if __name__ == "__main__":
-    # app.run(debug=True)
-    FlaskUI(app=app, server="flask", fullscreen=True).run()
+    app.run(debug=True)
