@@ -114,6 +114,19 @@ def order_items():
         return jsonify(order_items)
 
 
+@app.route("/print_order_items", methods=["GET"])
+def print_order_items():
+    from printer import print_order
+
+    order_id = request.args["id"]
+    with sqlite3.connect(DATABASE) as conn:
+        cursor = conn.cursor()
+        order_items = fetch_order_items(cursor, order_id)
+        order = {"id": order_id, "items": order_items}
+        print_order(order)
+        return "Ok", 200
+
+
 @app.route("/orders", methods=["GET"])
 def list_orders():
     date = request.args["date"]
@@ -175,7 +188,7 @@ def add_order():
                 (order_id, item["id"], item["quantity"]),
             )
         conn.commit()
-        return jsonify({"id": cursor.lastrowid}), 201
+        return jsonify({"id": order_id}), 201
 
 
 def fetch_summary(date: str):

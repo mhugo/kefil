@@ -132,6 +132,14 @@
                       const liTotal = document.createElement('li');
                       liTotal.textContent = `Total: ${formatCents(total)}`
                       ulDetails.appendChild(liTotal);
+
+                      const printBtn = document.createElement('button');
+                      printBtn.textContent = 'Imprimer commande';
+                      printBtn.onclick = () => {
+                          fetch(`/print_order_items?id=${order.id}`);
+                      };
+                      ulDetails.appendChild(printBtn);
+
                     li.appendChild(ulDetails);
                     detailsButton.textContent = 'Masquer Détails';
                   });
