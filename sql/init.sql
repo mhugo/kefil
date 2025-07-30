@@ -27,6 +27,7 @@ CREATE TABLE IF NOT EXISTS orders (
     timestamp TEXT NOT NULL,
     method_id INTEGER NOT NULL,
     total INTEGER NOT NULL,
+    discount INTEGER,
     FOREIGN KEY(method_id) REFERENCES payment_methods(id)
 );
 

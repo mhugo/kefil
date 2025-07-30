@@ -88,6 +88,32 @@ def serve_css():
     return send_from_directory("html", "common.css")
 
 
+def fetch_order_items(cursor, order_id: int):
+    cursor.execute(
+        """
+            SELECT items.name, items.price, order_items.quantity 
+            FROM order_items 
+            JOIN items ON order_items.item_id = items.id
+            WHERE order_items.order_id = ?
+        """,
+        (order_id,),
+    )
+    items = cursor.fetchall()
+    return [
+        {"name": name, "price": price, "quantity": quantity}
+        for name, price, quantity in items
+    ]
+
+
+@app.route("/order_items", methods=["GET"])
+def order_items():
+    order_id = request.args["id"]
+    with sqlite3.connect(DATABASE) as conn:
+        cursor = conn.cursor()
+        order_items = fetch_order_items(cursor, order_id)
+        return jsonify(order_items)
+
+
 @app.route("/orders", methods=["GET"])
 def list_orders():
     date = request.args["date"]
@@ -95,7 +121,7 @@ def list_orders():
         cursor = conn.cursor()
         cursor.execute(
             """
-            select o.id, timestamp, p.name, total from orders o, payment_methods p
+            select o.id, timestamp, p.name, total, discount from orders o, payment_methods p
             where p.id = o.method_id and date(timestamp) = ? order by o.id desc
             """,
             (date,),
@@ -104,27 +130,16 @@ def list_orders():
 
         order_list = []
         for order in orders:
-            order_id, timestamp, method, total = order
-            cursor.execute(
-                """
-                SELECT items.name, items.price, order_items.quantity 
-                FROM order_items 
-                JOIN items ON order_items.item_id = items.id
-                WHERE order_items.order_id = ?
-            """,
-                (order_id,),
-            )
-            items = cursor.fetchall()
+            order_id, timestamp, method, total, discount = order
+            order_items = fetch_order_items(cursor, order_id)
             order_list.append(
                 {
                     "id": order_id,
                     "timestamp": timestamp,
                     "method": method,
+                    "discount": discount,
                     "total": total,
-                    "items": [
-                        {"name": item[0], "price": item[1], "quantity": item[2]}
-                        for item in items
-                    ],
+                    "items": order_items,
                 }
             )
 
@@ -143,8 +158,14 @@ def add_order():
         )
         last_id = cursor.fetchone()[0] or 0
         cursor.execute(
-            "INSERT INTO orders (id_in_day, timestamp, method_id, total) VALUES (?, ?, ?, ?)",
-            (last_id + 1, timestamp, order_data["method_id"], order_data["total"]),
+            "INSERT INTO orders (id_in_day, timestamp, method_id, total, discount) VALUES (?, ?, ?, ?, ?)",
+            (
+                last_id + 1,
+                timestamp,
+                order_data["method_id"],
+                order_data["total"],
+                order_data["discount"],
+            ),
         )
         order_id = cursor.lastrowid
 

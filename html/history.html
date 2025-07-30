@@ -19,7 +19,6 @@
         width: 100%; /* Prend toute la largeur disponible dans le parent (avec padding) */
         max-width: 800px; /* Limite la largeur pour une meilleure lisibilité sur grand écran */
         border-radius: 0.5rem; /* Bords arrondis pour la table/liste */
-        overflow: hidden; /* Assure que les bordures arrondies sont respectées */
         box-shadow: 0 4px 8px rgba(0,0,0,0.1);
         border-collapse: collapse; /* Assure que les bordures de table sont correctes */
     }
@@ -70,7 +69,7 @@
     </div>
   </div>
 
-  <script>
+<script>
     function formatCents(cents) {
       return `${(cents / 100).toFixed(2)} €`;
     }
@@ -83,12 +82,68 @@
           orderList.innerHTML = '';
           orders.forEach(order => {
             const li = document.createElement('li');
-            li.textContent = `Commande #${order.id} - ${order.timestamp} - ${order.method} - Total: ${formatCents(order.total)}`;
+            li.style.flexDirection = 'column'; // Allow items to stack vertically
+
+            const orderSummary = document.createElement('div');
+            orderSummary.style.display = 'flex';
+            orderSummary.style.justifyContent = 'space-between';
+            orderSummary.style.alignItems = 'center';
+            orderSummary.style.width = '100%';
+
+            const orderText = document.createElement('span');
+            orderText.textContent = `Commande #${order.id} - ${order.timestamp} - ${order.method} - Total: ${formatCents(order.total)}`;
+            orderSummary.appendChild(orderText);
+
+            const detailsButton = document.createElement('button');
+            detailsButton.textContent = 'Voir Détails';
+            detailsButton.onclick = () => {
+              // Toggle visibility of details
+              const orderDetails = li.querySelector('.order-details');
+              if (orderDetails) {
+                orderDetails.remove(); // Remove if already exists to close
+                detailsButton.textContent = 'Voir Détails';
+              } else {
+                fetch(`/order_items?id=${order.id}`)
+                  .then(response => response.json())
+                  .then(items => {
+                    const ulDetails = document.createElement('ul');
+                    ulDetails.className = 'order-details';
+                    ulDetails.style.marginTop = '0.5rem';
+                    ulDetails.style.width = '100%';
+                    ulDetails.style.borderTop = '1px solid var(--border-color)';
+                    ulDetails.style.paddingTop = '0.5rem';
+                    ulDetails.style.listStyle = 'none';
+                    ulDetails.style.paddingLeft = '1rem'; // Indent details
+
+                      let total = 0;
+                    items.forEach(item => {
+                      const liItem = document.createElement('li');
+                      liItem.textContent = `${item.quantity} x ${item.name} (${formatCents(item.price)})`;
+                        ulDetails.appendChild(liItem);
+                        total += item.price * item.quantity;
+                    });
+                      console.log("==", order.discount);
+                      if (order.discount) {
+                          const liDiscount = document.createElement('li');
+                          liDiscount.textContent = `Remise: ${formatCents(order.discount)}`
+                          ulDetails.appendChild(liDiscount);
+                          total -= order.discount;
+                      }
+                      const liTotal = document.createElement('li');
+                      liTotal.textContent = `Total: ${formatCents(total)}`
+                      ulDetails.appendChild(liTotal);
+                    li.appendChild(ulDetails);
+                    detailsButton.textContent = 'Masquer Détails';
+                  });
+              }
+            };
+            orderSummary.appendChild(detailsButton);
+            li.appendChild(orderSummary);
             orderList.appendChild(li);
           });
         });
     }
-    
+
     init_tab_history();
   </script>
 </body>
