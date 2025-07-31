@@ -1,8 +1,7 @@
 import math
 from escpos import printer
 
-max_items_per_ticket = 4
-
+max_items_per_ticket = 6
 
 g_printer = None
 
@@ -55,6 +54,7 @@ def print_order(order, my_printer=None):
         for j, (q, name) in enumerate(ticket):
             my_printer.text(f"{q} x {name}" + ("\n" if j < len(ticket) - 1 else ""))
 
+    my_printer.text("\n\n")
     my_printer.cut(mode="FULL")
 
 
@@ -74,13 +74,13 @@ if __name__ == "__main__":
     mock_printer = None
     print_order(
         {
-            "id": 1,
+            "id_in_day": 1,
             "items": [
                 {"quantity": 1, "name": "A"},
                 {"quantity": 2, "name": "B"},
                 {"quantity": 1, "name": "C"},
                 {"quantity": 1, "name": "D"},
-                {"quantity": 9, "name": "E"},
+                {"quantity": 7, "name": "E"},
             ],
         },
         mock_printer,
