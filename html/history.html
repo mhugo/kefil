@@ -91,7 +91,7 @@
             orderSummary.style.width = '100%';
 
             const orderText = document.createElement('span');
-            orderText.textContent = `Commande #${order.id} - ${order.timestamp} - ${order.method} - Total: ${formatCents(order.total)}`;
+            orderText.textContent = `Commande #${order.id_in_day} - ${order.timestamp} - ${order.method} - Total: ${formatCents(order.total)}`;
             orderSummary.appendChild(orderText);
 
             const detailsButton = document.createElement('button');
@@ -105,7 +105,7 @@
               } else {
                 fetch(`/order_items?id=${order.id}`)
                   .then(response => response.json())
-                  .then(items => {
+                  .then(order => {
                     const ulDetails = document.createElement('ul');
                     ulDetails.className = 'order-details';
                     ulDetails.style.marginTop = '0.5rem';
@@ -116,7 +116,7 @@
                     ulDetails.style.paddingLeft = '1rem'; // Indent details
 
                       let total = 0;
-                    items.forEach(item => {
+                    order.items.forEach(item => {
                       const liItem = document.createElement('li');
                       liItem.textContent = `${item.quantity} x ${item.name} (${formatCents(item.price)})`;
                         ulDetails.appendChild(liItem);

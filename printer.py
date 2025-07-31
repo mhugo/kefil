@@ -15,10 +15,11 @@ def usb_printer():
 
 
 def print_order(order, my_printer=None):
+    order_id = order["id_in_day"]
     if my_printer is None:
         my_printer = usb_printer()
     my_printer.set(custom_size=True, height=2, width=2, bold=True)
-    my_printer.text(f"Commande n°{order['id']}")
+    my_printer.text(f"Commande n°{order_id}")
     items = [[item["quantity"], item["name"]] for item in order["items"]]
 
     tickets = []
@@ -46,7 +47,7 @@ def print_order(order, my_printer=None):
 
     for i, ticket in enumerate(tickets):
         my_printer.cut(mode="PART")
-        title = f"Commande {order['id']}"
+        title = f"Commande {order_id}"
         if len(tickets) > 1:
             title += f" - {i+1}/{len(tickets)}"
         my_printer.text(title + "\n")

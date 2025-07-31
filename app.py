@@ -89,6 +89,8 @@ def serve_css():
 
 
 def fetch_order_items(cursor, order_id: int):
+    cursor.execute("select id_in_day from orders where id = ?", (order_id,))
+    id_in_day = cursor.fetchone()[0]
     cursor.execute(
         """
             SELECT items.name, items.price, order_items.quantity 
@@ -99,10 +101,14 @@ def fetch_order_items(cursor, order_id: int):
         (order_id,),
     )
     items = cursor.fetchall()
-    return [
-        {"name": name, "price": price, "quantity": quantity}
-        for name, price, quantity in items
-    ]
+    return {
+        "id": order_id,
+        "id_in_day": id_in_day,
+        "items": [
+            {"name": name, "price": price, "quantity": quantity}
+            for name, price, quantity in items
+        ],
+    }
 
 
 @app.route("/order_items", methods=["GET"])
@@ -121,8 +127,7 @@ def print_order_items():
     order_id = request.args["id"]
     with sqlite3.connect(DATABASE) as conn:
         cursor = conn.cursor()
-        order_items = fetch_order_items(cursor, order_id)
-        order = {"id": order_id, "items": order_items}
+        order = fetch_order_items(cursor, order_id)
         print_order(order)
         return "Ok", 200
 
@@ -134,7 +139,7 @@ def list_orders():
         cursor = conn.cursor()
         cursor.execute(
             """
-            select o.id, timestamp, p.name, total, discount from orders o, payment_methods p
+            select o.id, o.id_in_day, timestamp, p.name, total, discount from orders o, payment_methods p
             where p.id = o.method_id and date(timestamp) = ? order by o.id desc
             """,
             (date,),
@@ -143,11 +148,12 @@ def list_orders():
 
         order_list = []
         for order in orders:
-            order_id, timestamp, method, total, discount = order
+            order_id, id_in_day, timestamp, method, total, discount = order
             order_items = fetch_order_items(cursor, order_id)
             order_list.append(
                 {
                     "id": order_id,
+                    "id_in_day": id_in_day,
                     "timestamp": timestamp,
                     "method": method,
                     "discount": discount,
