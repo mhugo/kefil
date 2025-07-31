@@ -64,6 +64,8 @@ def print_order(order, my_printer=None):
         print_order_(order, my_printer)
     except escpos.exceptions.Error as e:
         print("=== [ESCPOS ERROR] ===", e)
+        global g_printer
+        g_printer = None
 
 
 if __name__ == "__main__":
