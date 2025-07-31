@@ -1,5 +1,6 @@
 import math
 from escpos import printer
+import escpos.exceptions
 
 max_items_per_ticket = 6
 
@@ -13,7 +14,7 @@ def usb_printer():
     return g_printer
 
 
-def print_order(order, my_printer=None):
+def print_order_(order, my_printer=None):
     order_id = order["id_in_day"]
     if my_printer is None:
         my_printer = usb_printer()
@@ -56,6 +57,13 @@ def print_order(order, my_printer=None):
 
     my_printer.text("\n\n")
     my_printer.cut(mode="FULL")
+
+
+def print_order(order, my_printer=None):
+    try:
+        print_order_(order, my_printer)
+    except escpos.exceptions.Error as e:
+        print("=== [ESCPOS ERROR] ===", e)
 
 
 if __name__ == "__main__":
