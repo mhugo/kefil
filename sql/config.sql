@@ -17,6 +17,6 @@ insert into items (name, category_id, price, batch_quantity, grid_x, grid_y) val
 insert into items (name, category_id, price, batch_quantity, grid_x, grid_y) values ('Crêpes froment', 2, 50, 6, 5, 2);
 
 delete from payment_methods;
-insert into payment_methods (id, name) values (1, 'Espèces');
-insert into payment_methods (id, name) values (2, 'CB');
-insert into payment_methods (id, name) values (3, 'Celticash');
+insert into payment_methods (id, name) values (1, 'Celticash');
+insert into payment_methods (id, name) values (2, 'Espèces');
+insert into payment_methods (id, name) values (3, 'CB');
