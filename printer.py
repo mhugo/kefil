@@ -1,13 +1,86 @@
+import math
 from escpos import printer
 
-my_printer = printer.File("/dev/usb/lp0")
+max_items_per_ticket = 4
 
 
-def print_order(order):
+g_printer = None
+
+
+def usb_printer():
+    global g_printer
+    if g_printer is None:
+        g_printer = printer.File("/dev/usb/lp0")
+    return g_printer
+
+
+def print_order(order, my_printer=None):
+    if my_printer is None:
+        my_printer = usb_printer()
     my_printer.set(custom_size=True, height=2, width=2, bold=True)
     my_printer.text(f"Commande n°{order['id']}")
-    my_printer.cut(mode="PART")
-    my_printer.text(f"#{order['id']}\n")
-    for item in order["items"]:
-        my_printer.text(f"{item['quantity']} x {item['name']}\n")
-    my_printer.cut()
+    items = [[item["quantity"], item["name"]] for item in order["items"]]
+
+    tickets = []
+    current_ticket = []
+    current_q = 0
+    for quantity, name in items:
+        if current_q + quantity < max_items_per_ticket:
+            current_ticket.append((quantity, name))
+            current_q += quantity
+        else:
+            while current_q + quantity >= max_items_per_ticket:
+                q = max_items_per_ticket - current_q
+                current_ticket.append((q, name))
+                tickets.append(current_ticket)
+                current_ticket = []
+                current_q = 0
+                quantity -= q
+
+            if quantity:
+                current_ticket.append((quantity, name))
+                current_q += quantity
+
+    if current_ticket:
+        tickets.append(current_ticket)
+
+    for i, ticket in enumerate(tickets):
+        my_printer.cut(mode="PART")
+        title = f"Commande {order['id']}"
+        if len(tickets) > 1:
+            title += f" - {i+1}/{len(tickets)}"
+        my_printer.text(title + "\n")
+
+        for j, (q, name) in enumerate(ticket):
+            my_printer.text(f"{q} x {name}" + ("\n" if j < len(ticket) - 1 else ""))
+
+    my_printer.cut(mode="FULL")
+
+
+if __name__ == "__main__":
+
+    class MockPrinter:
+        def set(self, *args, **kwargs):
+            pass
+
+        def text(self, msg):
+            print("print " + msg)
+
+        def cut(self, mode="FULL"):
+            print("print ================")
+
+    # mock_printer = MockPrinter()
+    mock_printer = None
+    print_order(
+        {
+            "id": 1,
+            "items": [
+                {"quantity": 1, "name": "A"},
+                {"quantity": 2, "name": "B"},
+                {"quantity": 1, "name": "C"},
+                {"quantity": 1, "name": "D"},
+                {"quantity": 9, "name": "E"},
+            ],
+        },
+        mock_printer,
+    )
