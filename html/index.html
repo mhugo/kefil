@@ -500,6 +500,18 @@
     </div>
   </div>
 
+  <div id="validationModal" class="modal">
+    <div class="modal-content">
+      <h2>Valider la commande</h2>
+      <div class="modal-buttons">
+        <button class="cancel-button" onclick="closeValidationModal()">Fermer</button>
+        <button class="check-button" onclick="validateOrder(false)">Valider</button>
+        <button class="consume-button" onclick="validateOrder(true)">Valider et imprimer</button>
+      </div>
+    </div>
+  </div>
+
+
   <script>
     function init_tab_main() {
         let currentDate = new Date().toJSON().slice(0, 10);
@@ -750,7 +762,16 @@
             console.error("Error consuming coupon:", error);
             couponStatusText.textContent = "Erreur de connexion lors de la consommation du coupon.";
         }
+        }
+
+    function openValidationModal() {
+        document.getElementById('validationModal').style.display = 'flex';
     }
+
+    function closeValidationModal() {
+        document.getElementById('validationModal').style.display = 'none';
+    }
+        
 
 
     function finalizePayment() {
@@ -764,9 +785,10 @@
             window.alert("Mode de paiement non renseigné ou paiement insuffisant !");
             return;
         }
-        if (!window.confirm("La commande a t-elle bien été payée ?")) {
-            return;
-        }
+        openValidationModal();
+    }
+
+    function validateOrder(doPrint) {
         const orderItems = [];
         let total = 0;
         
@@ -801,8 +823,10 @@
         fetch(request)
             .then(response => response.json())
         .then(order => {
-        fetch("/print_order_items?id=" + order.id);
-            });
+        if (doPrint) {fetch("/print_order_items?id=" + order.id);}
+        });
+
+        closeValidationModal();
 
         // Clear basket
         for (const key in basket) {
