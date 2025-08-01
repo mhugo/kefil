@@ -65,6 +65,7 @@
   <div class="tab-container">
     <div class="tab active" id="history">
       <h1>Historique des commandes du <a href="?date={{previous_date}}">&lt;</a> {{current_date}} <a href="?date={{next_date}}">&gt;</a></h1>
+      <b>100 dernières commandes</b>
       <ul id="orderList"></ul>
     </div>
   </div>
@@ -75,7 +76,7 @@
     }
 
     function init_tab_history() {
-        fetch('/orders?date={{current_date}}')
+        fetch('/orders?limit=100&date={{current_date}}')
         .then(response => response.json())
         .then(orders => {
           const orderList = document.getElementById('orderList');

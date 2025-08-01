@@ -135,13 +135,15 @@ def print_order_items():
 @app.route("/orders", methods=["GET"])
 def list_orders():
     date = request.args["date"]
+    limit = request.args.get("limit")
     with sqlite3.connect(DATABASE) as conn:
         cursor = conn.cursor()
         cursor.execute(
             """
             select o.id, o.id_in_day, timestamp, p.name, total, discount from orders o, payment_methods p
             where p.id = o.method_id and date(timestamp) = ? order by o.id desc
-            """,
+            """
+            + (f"limit {limit}" if limit is not None else ""),
             (date,),
         )
         orders = cursor.fetchall()
