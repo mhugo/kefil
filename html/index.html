@@ -821,23 +821,23 @@
             }
         );
         fetch(request)
-            .then(response => response.json())
-        .then(order => {
-        if (doPrint) {fetch("/print_order_items?id=" + order.id);}
+          .then(response => response.json())
+            .then(order => {
+                    if (doPrint) {fetch("/print_order_items?id=" + order.id);}
+
+                    closeValidationModal();
+
+                    // Clear basket
+                   for (const key in basket) {
+                     delete basket[key];
+                   }
+                   paid = 0;
+                   discount = 0;
+                   paymentMethod = '';
+                   updateBasket();
+                   updateTotal();
+                   init_tab_main();
         });
-
-        closeValidationModal();
-
-        // Clear basket
-        for (const key in basket) {
-            delete basket[key];
-        }
-        paid = 0;
-        discount = 0;
-        paymentMethod = '';
-        updateBasket();
-        updateTotal();
-        init_tab_main();
     }
 
 
