@@ -2,7 +2,7 @@ import math
 from escpos import printer
 import escpos.exceptions
 
-max_items_per_ticket = 6
+max_items_per_ticket = 4
 
 g_printer = None
 
