@@ -257,6 +257,21 @@ def fetch_summary(date: str):
         )
         count_per_item = {r[0]: r[1] for r in cursor.fetchall()}
 
+        cursor.execute(
+            """
+            select
+              m.name, sum(total)
+            from
+              orders o, payment_methods m
+            where
+              m.id = o.method_id and
+              date(timestamp)=?
+            group by method_id
+            """,
+            (date,),
+        )
+        total_per_payment_method = {r[0]: r[1] for r in cursor.fetchall()}
+
     return {
         "n_orders": n_orders or 0,
         "n_items": n_items or 0,
@@ -264,6 +279,7 @@ def fetch_summary(date: str):
         "last_id": last_id or 0,
         "count_per_category": count_per_category or {},
         "count_per_item": count_per_item or {},
+        "total_per_payment_method": total_per_payment_method or {},
     }
 
 

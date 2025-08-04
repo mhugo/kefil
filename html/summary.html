@@ -92,6 +92,21 @@
     </tbody>
   </table>
 
+  <h2>Par mode de paiement</h2>
+  <table>
+    <thead>
+      <tr><th>Mode de paiement</th><th>Total</th></tr>
+    </thead>
+    <tbody>
+      {% for name, t in summary.total_per_payment_method.items() %}
+      <tr>
+        <td>{{ name }}</td>
+        <td class="number">{{ "%.2f"|format(t / 100) }} €</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
   <h2>Par article</h2>
   <table>
     <thead>
