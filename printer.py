@@ -1,6 +1,7 @@
 import math
 from escpos import printer
 import escpos.exceptions
+import os
 
 max_items_per_ticket = 4
 
@@ -10,7 +11,7 @@ g_printer = None
 def usb_printer():
     global g_printer
     if g_printer is None:
-        g_printer = printer.File("/dev/usb/lp0")
+        g_printer = printer.File(os.environ.get("KEFIL_PRINTER", "/dev/usb/lp0"))
     return g_printer
 
 
