@@ -61,12 +61,17 @@ def print_order_(order, my_printer=None):
 
 
 def print_order(order, my_printer=None):
-    try:
-        print_order_(order, my_printer)
-    except escpos.exceptions.Error as e:
-        print("=== [ESCPOS ERROR] ===", e)
-        global g_printer
-        g_printer = None
+    retries = 2
+    while retries:
+        try:
+            print_order_(order, my_printer)
+        except (escpos.exceptions.Error, OSError) as e:
+            print("=== [ESCPOS ERROR] ===", e)
+            global g_printer
+            g_printer = None
+            retries -= 1
+        else:
+            break
 
 
 if __name__ == "__main__":
