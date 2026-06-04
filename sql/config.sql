@@ -1,1 +1,1 @@
-config_festnoz2025.sql
+config_biocoop.sql
