@@ -16,15 +16,16 @@ def serve_index():
     with sqlite3.connect(DATABASE) as conn:
         cursor = conn.cursor()
         cursor.execute(
-            "SELECT id, name, price, batch_quantity, grid_x, grid_y, color FROM items"
+            "SELECT id, parent_id, name, price, batch_quantity, grid_x, grid_y, color FROM items"
         )
         items = cursor.fetchall()
         cursor.execute("SELECT id, name FROM payment_methods")
         payment_methods = cursor.fetchall()
 
-    items = [
-        {
+    all_items = {
+        id: {
             "id": id,
+            "parent_id": parent_id,
             "label": name,
             "price": price,
             "batch_quantity": batch_quantity or 1,
@@ -33,11 +34,28 @@ def serve_index():
             "bg_color": color or "#fff",
             "color": "#fff" if color else "#007bff",
         }
-        for id, name, price, batch_quantity, grid_x, grid_y, color in items
-    ]
+        for id, parent_id, name, price, batch_quantity, grid_x, grid_y, color in items
+    }
+
+    for id, item in all_items.items():
+        parent_id = item["parent_id"]
+        if parent_id is not None:
+            parent = all_items[parent_id]
+            parent.setdefault("sub_menu", {}).setdefault("items", []).append(item)
+
+    items = [item for _, item in all_items.items() if item["parent_id"] is None]
+
+    items_str = json.dumps(items)
+    print(json.dumps(items, indent=2))
+
     payment_methods = {id: name for id, name in payment_methods}
     return render_template_string(
-        html_template, items_list=items, payment_methods=payment_methods
+        html_template,
+        items_list=items_str,
+        payment_methods=payment_methods,
+        enable_discount=int(config.get("enable_discount", "0")),
+        enable_voucher=int(config.get("enable_voucher", "0")),
+        add_simple_validation=int(config.get("add_simple_validation", "0")),
     )
 
 

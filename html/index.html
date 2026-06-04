@@ -530,7 +530,7 @@
             });
     }
     
-    const config = {
+    const topLevelMenu = {
         items: {{items_list|safe}}
     };
 
@@ -842,16 +842,34 @@
 
 
     const grid = document.getElementById('buttonGrid');
-    config.items.forEach(item => {
-        const btn = document.createElement('button');
-        btn.className = 'square-button';
-        btn.style=`grid-column: ${item.grid_x}; grid-row: ${item.grid_y}; background-color: ${item.bg_color}; color: ${item.color}; border-color: #343a40`;
-        btn.textContent = item.label;
-        btn.onclick = () => addToBasket(item);
-        grid.appendChild(btn);
-    });
 
-      init_tab_main();
+    function fillButtonGrid(menu, parentMenu) {
+        grid.innerHTML = '';
+        menu.items.forEach(item => {
+            const btn = document.createElement('button');
+            btn.className = 'square-button';
+            btn.style=`grid-column: ${item.grid_x}; grid-row: ${item.grid_y}; background-color: ${item.bg_color}; color: ${item.color}; border-color: #343a40`;
+            btn.textContent = item.label;
+            if (item.sub_menu) {
+                btn.onclick = () => fillButtonGrid(item.sub_menu, menu);
+            } else {
+                btn.onclick = () => addToBasket(item);
+            }
+            grid.appendChild(btn);
+        });
+
+        if (parentMenu !== null) {
+            const btn = document.createElement('button');
+            btn.className = 'square-button';
+            btn.style=`grid-column: 5; grid-row: 1; background-color: #aaaaaa; color: white; border-color: #343a40`;
+            btn.textContent = '<=';
+            btn.onclick = () => fillButtonGrid(parentMenu, null);
+            grid.appendChild(btn);
+        }
+    }
+    init_tab_main();
+    fillButtonGrid(topLevelMenu, null);
+
   </script>
 </body>
 </html>

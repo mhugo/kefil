@@ -5,6 +5,7 @@ CREATE TABLE IF NOT EXISTS categories (
 
 CREATE TABLE IF NOT EXISTS items (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
+    parent_id INTEGER,
     name TEXT NOT NULL,
     preparation_label TEXT,
     batch_quantity INTEGER,
@@ -14,6 +15,7 @@ CREATE TABLE IF NOT EXISTS items (
     grid_y INTEGER,
     color TEXT,
     FOREIGN KEY(category_id) REFERENCES categories(id)
+    FOREIGN KEY(parent_id) REFERENCES items(id)
 );
 
 CREATE TABLE IF NOT EXISTS payment_methods (
