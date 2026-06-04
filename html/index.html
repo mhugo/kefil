@@ -466,8 +466,12 @@
       {% for method_id, method_name in payment_methods.items() %}
       <button class="pay-button" onclick="addPayment({{method_id}},'{{method_name}}')">{{method_name}}</button>
       {% endfor %}
+      {% if enable_discount %}
       <button class="discount-button" onclick="openDiscountModal()">Remise</button>
-      <!-- <button class="coupon-button" onclick="openCouponModal()">Coupon</button> -->
+      {% endif %}
+      {% if enable_voucher %}
+      <button class="coupon-button" onclick="openCouponModal()">Coupon</button>
+      {% endif %}
       <button class="validate-button" onclick="finalizePayment()">Valider</button>
     </div>
   </div>
@@ -505,7 +509,9 @@
       <h2>Valider la commande</h2>
       <div class="modal-buttons">
         <button class="cancel-button" onclick="closeValidationModal()">Fermer</button>
+        {% if add_simple_validation %}
         <button class="check-button" onclick="validateOrder(false)">Valider</button>
+        {% endif %}
         <button class="consume-button" onclick="validateOrder(true)">Valider et imprimer</button>
       </div>
     </div>

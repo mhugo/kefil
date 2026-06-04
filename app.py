@@ -356,5 +356,13 @@ def get_voucher():
             return "Voucher not found", 400
 
 
+def get_config():
+    with sqlite3.connect(DATABASE) as conn:
+        cursor = conn.cursor()
+        cursor.execute("select key, value from config")
+        return dict((key, value) for key, value in cursor.fetchall())
+
+
 if __name__ == "__main__":
+    config = get_config()
     app.run(debug=True)

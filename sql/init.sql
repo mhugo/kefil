@@ -49,3 +49,8 @@ create table if not exists vouchers (
        is_consumed boolean not null,
        consumption_timestamp text
 );
+
+create table if not exists config (
+       key text primary key,
+       value text
+);
