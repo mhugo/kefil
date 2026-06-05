@@ -781,6 +781,11 @@
 
 
     function finalizePayment() {
+{% if default_payment_id %}
+        if (paid == 0) {
+            addPayment({{default_payment_id}},'{{default_payment_name}}');
+        }
+{% endif %}
         let total_basket = computeTotal();
         if (total_basket == 0 ) {
             window.alert("Panier vide !");
