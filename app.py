@@ -53,9 +53,9 @@ def serve_index():
         html_template,
         items_list=items_str,
         payment_methods=payment_methods,
-        enable_discount=int(config.get("enable_discount", "0")),
-        enable_voucher=int(config.get("enable_voucher", "0")),
-        add_simple_validation=int(config.get("add_simple_validation", "0")),
+        enable_discount=bool(int(config.get("enable_discount", "0"))),
+        enable_voucher=bool(int(config.get("enable_voucher", "0"))),
+        add_simple_validation=bool(int(config.get("add_simple_validation", "0"))),
         default_payment_id=int(config.get("default_payment_id", "0")),
         default_payment_name=config.get("default_payment_name", ""),
     )
