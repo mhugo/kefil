@@ -2,6 +2,7 @@ delete from categories;
 insert into categories (id, name) values (1, 'Crêpes salées');
 insert into categories (id, name) values (2, 'Crêpes sucrées');
 insert into categories (id, name) values (3, 'Boissons');
+insert into categories (id, name) values (4, 'Goodies');
 
 delete from items;
 insert into items (id, name, category_id, price, grid_x, grid_y, color) values (1, 'BN 1 ingrédient', 1, 0, 1, 1, '#327ba8');
@@ -11,6 +12,8 @@ insert into items (id, name, category_id, price, grid_x, grid_y, color) values (
 insert into items (id, name, category_id, price, grid_x, grid_y, color) values (4, 'Froment', 2, 0, 3, 2, '#ab4f27');
 insert into items (id, name, category_id, price, grid_x, grid_y, color) values (5, 'Crêpes nues', 2, 0, 1, 3, null);
 insert into items (id, name, category_id, price, grid_x, grid_y, color) values (7, 'Jus de pomme', 3, 200, 3, 3, '#76a82f');
+insert into items (id, name, category_id, price, grid_x, grid_y, color) values (8, 'Tote bag', 4, 500, 2, 3, null);
+
 
 insert into items (parent_id, name, category_id, price, grid_x, grid_y, color) values (1, 'Jambon', 1, 300, 1, 1, '#915687');
 insert into items (parent_id, name, category_id, price, grid_x, grid_y, color) values (1, 'Oeuf', 1, 300, 2, 1, '#ffc107');
