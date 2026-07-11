@@ -1,1 +1,1 @@
-config_fete_musique_2025.sql
+config_bal_pompiers.sql
