@@ -1,0 +1,70 @@
+delete from categories;
+insert into categories (id, name) values (1, 'Crêpes salées');
+insert into categories (id, name) values (2, 'Crêpes sucrées');
+insert into categories (id, name) values (3, 'Boissons');
+insert into categories (id, name) values (4, 'Goodies');
+
+delete from items;
+insert into items (id, name, category_id, price, grid_x, grid_y, color) values (1, 'BN 1 ingrédient', 1, 0, 1, 1, '#327ba8');
+insert into items (id, name, category_id, price, grid_x, grid_y, color) values (2, 'BN 2 ingrédients', 1, 0, 2, 1, '#195c85');
+insert into items (id, name, category_id, price, grid_x, grid_y, color) values (3, 'BN 3 ingrédients', 1, 0, 3, 1, '#405461');
+insert into items (id, name, category_id, price, grid_x, grid_y, color) values (6, 'BN 4 ingrédients', 1, 0, 1, 2, '#405461');
+insert into items (id, name, category_id, price, grid_x, grid_y, color) values (4, 'Froment', 2, 0, 3, 2, '#ab4f27');
+insert into items (id, name, category_id, price, grid_x, grid_y, color) values (5, 'Crêpes nues / Goodies', 2, 0, 1, 3, null);
+insert into items (id, name, category_id, price, grid_x, grid_y, color) values (7, 'Jus de pomme', 3, 250, 3, 3, '#76a82f');
+insert into items (id, name, category_id, price, grid_x, grid_y, color) values (8, 'Cidre', 3, 300, 2, 3, '#76a82f');
+
+
+insert into items (parent_id, name, category_id, price, grid_x, grid_y, color) values (1, 'Jambon', 1, 400, 1, 1, '#915687');
+insert into items (parent_id, name, category_id, price, grid_x, grid_y, color) values (1, 'Oeuf', 1, 400, 2, 1, '#ffc107');
+insert into items (parent_id, name, category_id, price, grid_x, grid_y, color) values (1, 'Fromage', 1, 400, 2, 2, '#c99716');
+insert into items (parent_id, name, category_id, price, grid_x, grid_y, color) values (1, 'Chèvre', 1, 400, 3, 2, '#c99716');
+insert into items (parent_id, name, category_id, price, grid_x, grid_y, color) values (1, 'Légumes', 1, 400, 1, 2, '#28a745');
+insert into items (parent_id, name, category_id, price, grid_x, grid_y, color) values (1, 'Beurre BN', 1, 150, 1, 3, '#8a8154');
+
+insert into items (parent_id, name, category_id, price, grid_x, grid_y, color) values (2, 'Jambon / Fromage', 1, 500, 1, 1, '#28a745');
+insert into items (parent_id, name, category_id, price, grid_x, grid_y, color) values (2, 'Oeuf / Fromage', 1, 500, 2, 1, '#28a745');
+insert into items (parent_id, name, category_id, price, grid_x, grid_y, color) values (2, 'Jambon / Oeuf', 1, 500, 3, 1, '#28a745');
+insert into items (parent_id, name, category_id, price, grid_x, grid_y, color) values (2, 'Oeuf / Légumes', 1, 500, 1, 2, '#28a745');
+insert into items (parent_id, name, category_id, price, grid_x, grid_y, color) values (2, 'Légumes / Fromage', 1, 500, 2, 2, '#28a745');
+insert into items (parent_id, name, category_id, price, grid_x, grid_y, color) values (2, 'Légumes / Jambon', 1, 500, 3, 2, '#28a745');
+insert into items (parent_id, name, category_id, price, grid_x, grid_y, color) values (2, 'Jambon / Chèvre', 1, 500, 1, 3, '#c99716');
+insert into items (parent_id, name, category_id, price, grid_x, grid_y, color) values (2, 'Oeuf / Chèvre', 1, 500, 2, 3, '#c99716');
+insert into items (parent_id, name, category_id, price, grid_x, grid_y, color) values (2, 'Légumes / Chèvre', 1, 500, 3, 3, '#c99716');
+insert into items (parent_id, name, category_id, price, grid_x, grid_y, color) values (2, 'Chèvre / Caramel', 1, 500, 4, 2, '#195c85');
+
+insert into items (parent_id, name, category_id, price, grid_x, grid_y, color) values (3, 'Complète (O/J/F)', 1, 600, 1, 1, '#28a745');
+insert into items (parent_id, name, category_id, price, grid_x, grid_y, color) values (3, 'Complète végé (O/F/L)', 1, 600, 2, 1, '#28a745');
+insert into items (parent_id, name, category_id, price, grid_x, grid_y, color) values (3, 'Oeuf / Jambon / Légumes', 1, 600, 1, 2, '#28a745');
+insert into items (parent_id, name, category_id, price, grid_x, grid_y, color) values (3, 'Jambon / Fromage / Légumes', 1, 600, 2, 2, '#28a745');
+insert into items (parent_id, name, category_id, price, grid_x, grid_y, color) values (3, 'Oeuf / Jambon / Chèvre', 1, 600, 1, 3, '#c99716');
+insert into items (parent_id, name, category_id, price, grid_x, grid_y, color) values (3, 'Oeuf / Chèvre / Légumes', 1, 600, 2, 3, '#c99716');
+insert into items (parent_id, name, category_id, price, grid_x, grid_y, color) values (3, 'Jambon / Chèvre / Légumes', 1, 600, 3, 3, '#c99716');
+
+insert into items (parent_id, name, category_id, price, grid_x, grid_y, color) values (4, 'Chocolat', 2, 300, 1, 1, '#c4a137');
+insert into items (parent_id, name, category_id, price, grid_x, grid_y, color) values (4, 'Caramel', 2, 300, 2, 1, '#c4a137');
+insert into items (parent_id, name, category_id, price, grid_x, grid_y, color) values (4, 'Confiture', 2, 300, 3, 1, '#c4a137');
+insert into items (parent_id, name, category_id, price, grid_x, grid_y, color) values (4, 'Beurre / Sucre', 2, 200, 2, 2, '#c4a137');
+insert into items (parent_id, name, category_id, price, grid_x, grid_y, color) values (4, 'Beurre FR', 2, 150, 1, 2, '#8a8154');
+insert into items (parent_id, name, category_id, price, grid_x, grid_y, color) values (4, 'Choco/Caramel', 2, 400, 3, 2, '#8a8154');
+
+insert into items (parent_id, name, category_id, price, batch_quantity, grid_x, grid_y) values (5, 'Crêpes BN', 1, 80, 6, 1, 1);
+insert into items (parent_id, name, category_id, price, batch_quantity, grid_x, grid_y) values (5, 'Crêpes FR', 2, 80, 6, 1, 2);
+insert into items (parent_id, name, category_id, price, grid_x, grid_y, color) values (5, 'Tote bag', 4, 1000, 2, 1, '#915687');
+insert into items (parent_id, name, category_id, price, grid_x, grid_y, color) values (5, 'Badge', 4, 200, 2, 2, '#915687');
+insert into items (parent_id, name, category_id, price, grid_x, grid_y, color) values (5, 'Calendrier', 4, 1000, 3, 1, '#915687');
+insert into items (parent_id, name, category_id, price, grid_x, grid_y, color) values (5, 'Billet tombola', 4, 100, 3, 2, '#915687');
+
+insert into items (parent_id, name, category_id, price, grid_x, grid_y, color) values (6, 'Oeuf / Jambon / Fromage / Légumes', 1, 600, 1, 1, '#c4a137');
+insert into items (parent_id, name, category_id, price, grid_x, grid_y, color) values (6, 'Oeuf / Jambon / Chèvre / Légumes', 1, 600, 2, 1, '#c4a137');
+
+
+delete from payment_methods;
+insert into payment_methods (id, name) values (1, 'Espèces');
+insert into payment_methods (id, name) values (2, 'CB');
+--insert into payment_methods (id, name) values (3, 'Ticket bénévole');
+
+delete from config;
+insert into config (key, value) values ('enable_discount', false);
+insert into config (key, value) values ('enable_voucher', false);
+insert into config (key, value) values ('add_simple_validation', true);
