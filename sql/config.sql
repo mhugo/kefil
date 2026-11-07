@@ -1,1 +1,1 @@
-config_40ans_7epis.sql
+config_festnoz_2026.sql
